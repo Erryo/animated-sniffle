@@ -6,21 +6,28 @@ import "github.com/veandco/go-sdl2/sdl"
 type gameState struct {
 	window          *sdl.Window
 	renderer        *sdl.Renderer
-	gameObjects     *[]Object
-	cameraTarget    *Object
+	Enemies         *[]Enemy
+	Player          *Player
 	nextID          uint16
 	backgroundImage *sdl.Texture
 }
-type Object struct {
+
+type Enemy struct {
 	id        uint16
+	x, y      int
 	rect      sdl.Rect
-	color     sdl.Color
-	pixel     uint32
 	direction int8
+	color     [3]uint8
+}
+type Player struct {
+	id      uint16
+	speed   uint8
+	x, y    int
+	texture *sdl.Texture
 }
 
 const (
-	WINDOW_WIDTH  = 800
+	WINDOW_WIDTH  = 900
 	WINDOW_HEIGHT = 600
 )
 

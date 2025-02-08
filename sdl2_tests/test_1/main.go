@@ -22,7 +22,12 @@ func main() {
 	}
 
 	renderer, err := sdl.CreateRenderer(window, -1, sdl.RENDERER_ACCELERATED)
+	if err != nil {
+		panic(err)
+	}
 
-	state := gameState{window: window, renderer: renderer, gameObjects: &[]Object{}}
+	state := gameState{window: window, renderer: renderer, Enemies: &[]Enemy{}}
+
+	state.initPlayer(WINDOW_WIDTH/2, WINDOW_HEIGHT/2, "media/player.png")
 	state.gameLoop()
 }

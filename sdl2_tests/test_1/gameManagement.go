@@ -9,21 +9,16 @@ func (state *gameState) gameLoop() {
 	running := true
 outerGameLoop:
 	for running {
-		for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
-			switch event.(type) {
-			case *sdl.QuitEvent:
-				println("Quit")
-				state.QuitGame()
-				state.CloseSDL()
-				running = false
-				break outerGameLoop
-			}
+		if state.doInput() {
+			running = false
+			break outerGameLoop
 		}
+
 		state.loadMedia()
 		state.prepareScene()
 		state.Update()
 		state.drawAllGameObjects()
-		sdl.Delay(16)
+		sdl.Delay(32)
 	}
 }
 
@@ -32,6 +27,52 @@ func (state *gameState) loadMedia() {
 	if state.backgroundImage, err = img.LoadTexture(state.renderer, "media/background.png"); err != nil {
 		panic(err)
 	}
+}
+
+// returns true if recieved quit signal
+func (state *gameState) doInput() bool {
+	for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
+		switch e := event.(type) {
+		case *sdl.QuitEvent:
+			println("Quit")
+			state.QuitGame()
+			state.CloseSDL()
+			return true
+		case *sdl.KeyboardEvent:
+			if e.Type == sdl.KEYDOWN {
+				state.doKeyDown(e)
+			} else if e.Type == sdl.KEYUP {
+				state.doKeyUp(e)
+			}
+
+		}
+	}
+	return false
+}
+
+func (state *gameState) doKeyDown(event *sdl.KeyboardEvent) {
+	speed := state.Player.speed
+	switch event.Keysym.Scancode {
+	case sdl.SCANCODE_W:
+		if state.Player.y-int(speed) > 0+20 {
+			state.Player.y += -int(speed)
+		}
+	case sdl.SCANCODE_A:
+		if state.Player.x-int(speed) > 0+20 {
+			state.Player.x += -int(speed)
+		}
+	case sdl.SCANCODE_S:
+		if state.Player.y+int(speed) < WINDOW_HEIGHT-80 {
+			state.Player.y += int(speed)
+		}
+	case sdl.SCANCODE_D:
+		if state.Player.x+int(speed) < WINDOW_WIDTH-80 {
+			state.Player.x += int(speed)
+		}
+	}
+}
+
+func (state *gameState) doKeyUp(event *sdl.KeyboardEvent) {
 }
 
 func (state *gameState) QuitGame() {
@@ -48,13 +89,27 @@ func (state *gameState) CloseSDL() {
 	sdl.Quit()
 }
 
-func (state *gameState) initObject(pixel uint32, x, y, w, h int32) {
+func (state *gameState) AssignID() uint16 {
+	state.nextID++
+	return state.nextID - 1
+}
+
+func (state *gameState) initObject(color [3]uint8, x, y, w, h int32) {
 	rect := sdl.Rect{X: x, Y: y, W: w, H: h}
-	object := Object{rect: rect, pixel: pixel, id: state.nextID}
-	*state.gameObjects = append(*state.gameObjects, object)
-	state.nextID += 1
+	object := Enemy{rect: rect, color: color, id: state.AssignID()}
+	*state.Enemies = append(*state.Enemies, object)
+}
+
+// texturePath := ,,media/name.png
+func (state *gameState) initPlayer(x, y int, texturePath string) {
+	texture, err := img.LoadTexture(state.renderer, texturePath)
+	if err != nil {
+		panic(err)
+	}
+	player := Player{x: x, y: y, texture: texture, id: state.AssignID(), speed: 20}
+	state.Player = &player
 }
 
 func (state *gameState) Update() {
-	state.renderer.SetDrawColor(0, 0, 0, 255)
+	state.blit(*state.Player)
 }
