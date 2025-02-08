@@ -51,31 +51,44 @@ func (state *gameState) doInput() bool {
 }
 
 func (state *gameState) doKeyDown(event *sdl.KeyboardEvent) {
-	speed := state.Player.speed
+	if event.Repeat != 0 {
+		return
+	}
 	switch event.Keysym.Scancode {
 	case sdl.SCANCODE_W:
-		if state.Player.y-int(speed) > 0+20 {
-			state.Player.y += -int(speed)
-		}
+		state.Player.eventList[0] = true
+
 	case sdl.SCANCODE_A:
-		if state.Player.x-int(speed) > 0+20 {
-			state.Player.x += -int(speed)
-		}
+		state.Player.eventList[1] = true
+
 	case sdl.SCANCODE_S:
-		if state.Player.y+int(speed) < WINDOW_HEIGHT-80 {
-			state.Player.y += int(speed)
-		}
+		state.Player.eventList[2] = true
+
 	case sdl.SCANCODE_D:
-		if state.Player.x+int(speed) < WINDOW_WIDTH-80 {
-			state.Player.x += int(speed)
-		}
+		state.Player.eventList[3] = true
+
 	}
 }
 
 func (state *gameState) doKeyUp(event *sdl.KeyboardEvent) {
+	switch event.Keysym.Scancode {
+	case sdl.SCANCODE_W:
+		state.Player.eventList[0] = false
+
+	case sdl.SCANCODE_A:
+		state.Player.eventList[1] = false
+	case sdl.SCANCODE_S:
+		state.Player.eventList[2] = false
+
+	case sdl.SCANCODE_D:
+		state.Player.eventList[3] = false
+
+	}
 }
 
 func (state *gameState) QuitGame() {
+	state.Player.texture.Destroy()
+	state.Player.texture = nil
 	state.backgroundImage.Destroy()
 	state.backgroundImage = nil
 	state.renderer.Destroy()
@@ -106,10 +119,12 @@ func (state *gameState) initPlayer(x, y int, texturePath string) {
 	if err != nil {
 		panic(err)
 	}
-	player := Player{x: x, y: y, texture: texture, id: state.AssignID(), speed: 20}
+	eventList := make([]bool, 6)
+	player := Player{x: x, y: y, texture: texture, id: state.AssignID(), speed: 20, eventList: eventList}
 	state.Player = &player
 }
 
 func (state *gameState) Update() {
+	state.Player.checkEventList()
 	state.blit(*state.Player)
 }

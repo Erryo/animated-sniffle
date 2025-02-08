@@ -24,6 +24,9 @@ type Player struct {
 	speed   uint8
 	x, y    int
 	texture *sdl.Texture
+	// The eventList tells if a key was pressed down and not lifted up
+	// the order: moveUp moveL moveDown moveRight Fire
+	eventList []bool
 }
 
 const (
