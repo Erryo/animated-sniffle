@@ -4,11 +4,12 @@ import "github.com/veandco/go-sdl2/sdl"
 
 // Better called level state
 type gameState struct {
-	window       *sdl.Window
-	renderer     *sdl.Renderer
-	gameObjects  *[]Object
-	cameraTarget *Object
-	nextID       uint16
+	window          *sdl.Window
+	renderer        *sdl.Renderer
+	gameObjects     *[]Object
+	cameraTarget    *Object
+	nextID          uint16
+	backgroundImage *sdl.Texture
 }
 type Object struct {
 	id        uint16

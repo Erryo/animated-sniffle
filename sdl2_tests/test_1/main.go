@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/veandco/go-sdl2/img"
 	"github.com/veandco/go-sdl2/sdl"
 )
 
@@ -10,10 +11,18 @@ func main() {
 	}
 	defer sdl.Quit()
 
-	window, renderer, err := sdl.CreateWindowAndRenderer(WINDOW_WIDTH, WINDOW_HEIGHT, 0)
+	if err := img.Init(img.INIT_PNG); err != nil {
+		panic(err)
+	}
+
+	window, err := sdl.CreateWindow("Sniffle Shoots Asteroids", sdl.WINDOWPOS_CENTERED, sdl.WINDOWPOS_CENTERED,
+		WINDOW_WIDTH, WINDOW_HEIGHT, sdl.WINDOW_SHOWN)
 	if err != nil {
 		panic(err)
 	}
+
+	renderer, err := sdl.CreateRenderer(window, -1, sdl.RENDERER_ACCELERATED)
+
 	state := gameState{window: window, renderer: renderer, gameObjects: &[]Object{}}
-	gameLoop(state)
+	state.gameLoop()
 }
