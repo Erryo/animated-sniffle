@@ -28,6 +28,13 @@ func main() {
 
 	state := gameState{window: window, renderer: renderer, Enemies: &[]Enemy{}}
 
-	state.initPlayer(WINDOW_WIDTH/2, WINDOW_HEIGHT/2, "media/player.png")
+	state.initPlayer(WINDOW_WIDTH/2, WINDOW_HEIGHT/2, 15, "media/player.png")
+	state.initObject(BLUE, 140, 140, 70, 70)
+	state.initObject(MAGENTA, 560, 450, 20, 40)
+	state.initObject(YELLOW, 240, 120, 10, 30)
+	state.initObject(CYAN, 700, 500, 40, 20)
+
+	state.loadMedia()
+
 	state.gameLoop()
 }

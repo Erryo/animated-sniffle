@@ -1,24 +1,35 @@
 package main
 
 import (
+	"fmt"
+	"math"
+	"time"
+
 	"github.com/veandco/go-sdl2/img"
 	"github.com/veandco/go-sdl2/sdl"
 )
 
 func (state *gameState) gameLoop() {
 	running := true
+	var Start time.Time
+	gameStart := time.Now()
 outerGameLoop:
 	for running {
+		Start = time.Now()
 		if state.doInput() {
 			running = false
 			break outerGameLoop
 		}
 
-		state.loadMedia()
 		state.prepareScene()
 		state.Update()
 		state.drawAllGameObjects()
-		sdl.Delay(32)
+
+		fmt.Println(time.Since(Start))
+		if time.Since(Start) > 50*time.Millisecond {
+			fmt.Println(time.Since(gameStart))
+		}
+		sdl.Delay(22)
 	}
 }
 
@@ -108,23 +119,31 @@ func (state *gameState) AssignID() uint16 {
 }
 
 func (state *gameState) initObject(color [3]uint8, x, y, w, h int32) {
-	rect := sdl.Rect{X: x, Y: y, W: w, H: h}
-	object := Enemy{rect: rect, color: color, id: state.AssignID()}
+	rect := sdl.Rect{X: x - w/2, Y: y - h/2, W: w, H: h}
+	radius := math.Sqrt(math.Pow(float64(h/2), 2) + math.Pow(float64(w/2), 2))
+	object := Enemy{x: x, y: y, rect: rect, color: color, id: state.AssignID(), hitBoxRadius: uint8(radius)}
 	*state.Enemies = append(*state.Enemies, object)
 }
 
 // texturePath := ,,media/name.png
-func (state *gameState) initPlayer(x, y int, texturePath string) {
+func (state *gameState) initPlayer(x, y int32, speed uint8, texturePath string) {
 	texture, err := img.LoadTexture(state.renderer, texturePath)
 	if err != nil {
 		panic(err)
 	}
 	eventList := make([]bool, 6)
-	player := Player{x: x, y: y, texture: texture, id: state.AssignID(), speed: 20, eventList: eventList}
+
+	_, _, w, h, err := texture.Query()
+	if err != nil {
+		panic(err)
+	}
+
+	radius := math.Sqrt(math.Pow(float64(h/2), 2) + math.Pow(float64(w/2), 2))
+	player := Player{x: x, y: y, texture: texture, id: state.AssignID(), speed: speed, eventList: eventList, hitBoxRadius: uint8(radius)}
 	state.Player = &player
 }
 
 func (state *gameState) Update() {
-	state.Player.checkEventList()
+	state.Player.checkEventList(state)
 	state.blit(*state.Player)
 }

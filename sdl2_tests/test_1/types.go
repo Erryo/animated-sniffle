@@ -1,6 +1,8 @@
 package main
 
-import "github.com/veandco/go-sdl2/sdl"
+import (
+	"github.com/veandco/go-sdl2/sdl"
+)
 
 // Better called level state
 type gameState struct {
@@ -13,17 +15,19 @@ type gameState struct {
 }
 
 type Enemy struct {
-	id        uint16
-	x, y      int
-	rect      sdl.Rect
-	direction int8
-	color     [3]uint8
+	id           uint16
+	x, y         int32
+	rect         sdl.Rect
+	hitBoxRadius uint8
+	direction    int8
+	color        [3]uint8
 }
 type Player struct {
-	id      uint16
-	speed   uint8
-	x, y    int
-	texture *sdl.Texture
+	id           uint16
+	speed        uint8
+	x, y         int32
+	texture      *sdl.Texture
+	hitBoxRadius uint8
 	// The eventList tells if a key was pressed down and not lifted up
 	// the order: moveUp moveL moveDown moveRight Fire
 	eventList []bool
