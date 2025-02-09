@@ -25,7 +25,6 @@ outerGameLoop:
 		state.Update()
 		state.drawAllGameObjects()
 
-		fmt.Println(time.Since(Start))
 		if time.Since(Start) > 50*time.Millisecond {
 			fmt.Println(time.Since(gameStart))
 		}
@@ -82,6 +81,7 @@ func (state *gameState) doKeyDown(event *sdl.KeyboardEvent) {
 }
 
 func (state *gameState) doKeyUp(event *sdl.KeyboardEvent) {
+	fmt.Println("KEYUP")
 	switch event.Keysym.Scancode {
 	case sdl.SCANCODE_W:
 		state.Player.eventList[0] = false

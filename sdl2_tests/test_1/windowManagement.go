@@ -35,7 +35,9 @@ func (state *gameState) blit(player Player) {
 	// The origin is the same but the texture is centered
 	dst.X = dst.X - dst.W/2
 	dst.Y = dst.Y - dst.H/2
-	state.renderer.Copy(player.texture, nil, &dst)
+	if err := state.renderer.CopyEx(player.texture, nil, &dst, float64(player.rotation), nil, sdl.FLIP_NONE); err != nil {
+		fmt.Println("Error CopyEx'ng player:", err)
+	}
 
 	gfx.CircleRGBA(state.renderer, player.x, player.y, int32(player.hitBoxRadius), 255, 0, 0, 255)
 }
