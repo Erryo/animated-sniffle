@@ -30,10 +30,9 @@ func (player *Player) moveUp(state *gameState) {
 			return
 		}
 		if player.rotation >= 180 {
-			player.changeRotation(15)
-		}
-		if player.rotation < 180 {
-			player.changeRotation(-15)
+			player.changeRotation(10)
+		} else if player.rotation < 180 {
+			player.changeRotation(-10)
 		}
 	}
 }
@@ -44,10 +43,10 @@ func (player *Player) moveDown(state *gameState) {
 		if player.rotation == 180 {
 			return
 		}
-		if player.rotation >= 0 {
-			player.changeRotation(15)
-		} else if player.rotation <= 360 {
-			player.changeRotation(-15)
+		if player.rotation >= 0 && player.rotation < 180 {
+			player.changeRotation(10)
+		} else if player.rotation <= 360 && player.rotation > 180 {
+			player.changeRotation(-10)
 		}
 	}
 }
@@ -59,9 +58,9 @@ func (player *Player) moveLeft(state *gameState) {
 			return
 		}
 		if player.rotation >= 90 && player.rotation < 270 {
-			player.changeRotation(15)
+			player.changeRotation(10)
 		} else if player.rotation < 90 || player.rotation <= 360 {
-			player.changeRotation(-15)
+			player.changeRotation(-10)
 		}
 	}
 }
@@ -73,10 +72,9 @@ func (player *Player) moveRight(state *gameState) {
 			return
 		}
 		if player.rotation < 270 && player.rotation > 90 {
-			player.changeRotation(-15)
-		}
-		if player.rotation >= 270 || player.rotation < 90 {
-			player.changeRotation(15)
+			player.changeRotation(-10)
+		} else if player.rotation >= 270 || player.rotation < 90 {
+			player.changeRotation(10)
 		}
 
 	}
