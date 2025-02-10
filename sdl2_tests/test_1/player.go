@@ -1,86 +1,110 @@
 package main
 
-import (
-	"fmt"
-	"math"
-)
-
 func (player *Player) checkEventList(state *gameState) {
 	if player.eventList[0] {
-		player.moveUp(state)
+		if player.eventList[1] || player.eventList[3] {
+			player.moveUp(state, 1/1.4142)
+		} else {
+			player.moveUp(state, 1)
+		}
 	}
 	if player.eventList[1] {
-		player.moveLeft(state)
+		player.moveLeft(state, 1)
 	}
 	if player.eventList[2] {
-		player.moveDown(state)
+		// To make diagonal movement the same speed as the normal movement
+		if player.eventList[1] || player.eventList[3] {
+			player.moveDown(state, 1/1.4142)
+		} else {
+			player.moveDown(state, 1)
+		}
 	}
 	if player.eventList[3] {
-		player.moveRight(state)
+		player.moveRight(state, 1)
 	}
 	if player.eventList[4] {
-		player.fire()
+		player.fire(state)
 	}
 }
 
-func (player *Player) moveUp(state *gameState) {
-	if player.y-int32(player.speed)-int32(player.hitBoxRadius) > 0 && !player.willCollide(state, player.x, player.y-int32(player.speed)) {
-		player.y += -int32(player.speed)
-		if player.rotation == 0 || player.rotation == 360 {
-			return
-		}
-		if player.rotation >= 180 {
-			player.changeRotation(10)
-		} else if player.rotation < 180 {
-			player.changeRotation(-10)
-		}
-	}
-}
-
-func (player *Player) moveDown(state *gameState) {
-	if player.y+int32(player.speed)+int32(player.hitBoxRadius) < WINDOW_HEIGHT && !player.willCollide(state, player.x, player.y+int32(player.speed)) {
-		player.y += int32(player.speed)
-		if player.rotation == 180 {
-			return
-		}
-		if player.rotation >= 0 && player.rotation < 180 {
-			player.changeRotation(10)
-		} else if player.rotation <= 360 && player.rotation > 180 {
-			player.changeRotation(-10)
+func (player *Player) moveUp(state *gameState, speedModifier float32) {
+	newPlayerCoordinate := player.y - int32(float32(player.speed)*speedModifier)
+	if newPlayerCoordinate-int32(player.hitBoxRadius) > 0 {
+		if willColide, _ := willCollide(state, player.x, newPlayerCoordinate, player.hitBoxRadius); !willColide {
+			player.y = newPlayerCoordinate
+			if player.rotation == 0 || player.rotation == 360 {
+				return
+			}
+			if player.rotation >= 180 {
+				player.changeRotation(15)
+			} else if player.rotation < 180 {
+				player.changeRotation(-15)
+			}
 		}
 	}
 }
 
-func (player *Player) moveLeft(state *gameState) {
-	if player.x-int32(player.speed)-int32(player.hitBoxRadius) > 0 && !player.willCollide(state, player.x-int32(player.speed), player.y) {
-		player.x += -int32(player.speed)
-		if player.rotation == 270 {
-			return
-		}
-		if player.rotation >= 90 && player.rotation < 270 {
-			player.changeRotation(10)
-		} else if player.rotation < 90 || player.rotation <= 360 {
-			player.changeRotation(-10)
+func (player *Player) moveDown(state *gameState, speedModifier float32) {
+	newPlayerCoordinate := player.y + int32(float32(player.speed)*speedModifier)
+	if newPlayerCoordinate+int32(player.hitBoxRadius) < WINDOW_HEIGHT {
+		if willColide, _ := willCollide(state, player.x, newPlayerCoordinate, player.hitBoxRadius); !willColide {
+			player.y = newPlayerCoordinate
+			if player.rotation == 180 {
+				return
+			}
+			if player.rotation >= 0 && player.rotation < 180 {
+				player.changeRotation(15)
+			} else if player.rotation <= 360 && player.rotation > 180 {
+				player.changeRotation(-15)
+			}
 		}
 	}
 }
 
-func (player *Player) moveRight(state *gameState) {
-	if player.x+int32(player.speed)+int32(player.hitBoxRadius) < WINDOW_WIDTH && !player.willCollide(state, player.x+int32(player.speed), player.y) {
-		player.x += int32(player.speed)
-		if player.rotation == 90 {
-			return
+func (player *Player) moveLeft(state *gameState, speedModifier float32) {
+	newPlayerCoordinate := player.x - int32(float32(player.speed)*speedModifier)
+	if newPlayerCoordinate-int32(player.hitBoxRadius) > 0 {
+		if willColide, _ := willCollide(state, newPlayerCoordinate, player.y, player.hitBoxRadius); !willColide {
+			player.x = newPlayerCoordinate
+			if player.rotation == 270 {
+				return
+			}
+			if player.rotation >= 90 && player.rotation < 270 {
+				player.changeRotation(15)
+			} else if player.rotation < 90 || player.rotation <= 360 {
+				player.changeRotation(-15)
+			}
 		}
-		if player.rotation < 270 && player.rotation > 90 {
-			player.changeRotation(-10)
-		} else if player.rotation >= 270 || player.rotation < 90 {
-			player.changeRotation(10)
-		}
-
 	}
 }
 
-func (player *Player) fire() {
+func (player *Player) moveRight(state *gameState, speedModifier float32) {
+	newPlayerCoordinate := player.x + int32(float32(player.speed)*speedModifier)
+	if newPlayerCoordinate+int32(player.hitBoxRadius) < WINDOW_WIDTH {
+		if willColide, _ := willCollide(state, newPlayerCoordinate, player.y, player.hitBoxRadius); !willColide {
+			player.x = newPlayerCoordinate
+			if player.rotation == 90 {
+				return
+			}
+			if player.rotation < 270 && player.rotation > 90 {
+				player.changeRotation(-15)
+			} else if player.rotation >= 270 || player.rotation < 90 {
+				player.changeRotation(15)
+			}
+		}
+	}
+}
+
+// needs Testing <- written in a hurry
+func (player *Player) fire(state *gameState) {
+	if player.ammo <= 0 || player.cooldown != 0 {
+		return
+	}
+	if player.ammo-1 == 0 {
+		player.cooldown = 64 * 2
+	}
+	state.initProjectile(RED, 64*3, [2]int16{12, 0}, 1, player.x, player.y, 10, 10)
+	player.ammo -= 1
 }
 
 func (player *Player) changeRotation(angle int16) {
@@ -92,15 +116,4 @@ func (player *Player) changeRotation(angle int16) {
 	} else {
 		player.rotation += angle
 	}
-	fmt.Println(player.rotation, newAngle)
-}
-
-func (player *Player) willCollide(state *gameState, x, y int32) bool {
-	for _, enemy := range *state.Enemies {
-		distance := math.Sqrt(math.Pow(float64(enemy.x-x), 2) + math.Pow(float64(enemy.y-y), 2))
-		if distance < float64(enemy.hitBoxRadius+player.hitBoxRadius) {
-			return true
-		}
-	}
-	return false
 }

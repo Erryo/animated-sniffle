@@ -1,9 +1,7 @@
 package main
 
 import (
-	"fmt"
 	"math"
-	"time"
 
 	"github.com/veandco/go-sdl2/img"
 	"github.com/veandco/go-sdl2/sdl"
@@ -11,11 +9,10 @@ import (
 
 func (state *gameState) gameLoop() {
 	running := true
-	var Start time.Time
-	gameStart := time.Now()
+
 outerGameLoop:
 	for running {
-		Start = time.Now()
+
 		if state.doInput() {
 			running = false
 			break outerGameLoop
@@ -23,12 +20,9 @@ outerGameLoop:
 
 		state.prepareScene()
 		state.Update()
-		state.drawAllGameObjects()
+		state.drawAllObjects()
 
-		if time.Since(Start) > 50*time.Millisecond {
-			fmt.Println(time.Since(gameStart))
-		}
-		sdl.Delay(22)
+		sdl.Delay(GAME_UPDATE_DELAY)
 	}
 }
 
@@ -77,11 +71,12 @@ func (state *gameState) doKeyDown(event *sdl.KeyboardEvent) {
 	case sdl.SCANCODE_D:
 		state.Player.eventList[3] = true
 
+	case sdl.SCANCODE_SPACE:
+		state.Player.eventList[4] = true
 	}
 }
 
 func (state *gameState) doKeyUp(event *sdl.KeyboardEvent) {
-	fmt.Println("KEYUP")
 	switch event.Keysym.Scancode {
 	case sdl.SCANCODE_W:
 		state.Player.eventList[0] = false
@@ -93,6 +88,8 @@ func (state *gameState) doKeyUp(event *sdl.KeyboardEvent) {
 
 	case sdl.SCANCODE_D:
 		state.Player.eventList[3] = false
+	case sdl.SCANCODE_SPACE:
+		state.Player.eventList[4] = false
 
 	}
 }
@@ -118,11 +115,18 @@ func (state *gameState) AssignID() uint16 {
 	return state.nextID - 1
 }
 
-func (state *gameState) initObject(color [3]uint8, x, y, w, h int32) {
+func (state *gameState) initObject(color [3]uint8, x, y, w, h int32, hp uint8) {
 	rect := sdl.Rect{X: x - w/2, Y: y - h/2, W: w, H: h}
 	radius := math.Sqrt(math.Pow(float64(h/2), 2) + math.Pow(float64(w/2), 2))
-	object := Enemy{x: x, y: y, rect: rect, color: color, id: state.AssignID(), hitBoxRadius: uint8(radius)}
-	*state.Enemies = append(*state.Enemies, object)
+	enemy := Enemy{x: x, y: y, rect: &rect, color: color, id: state.AssignID(), hitBoxRadius: uint8(radius), hp: hp}
+	*state.Enemies = append(*state.Enemies, enemy)
+}
+
+func (state *gameState) initProjectile(color [3]uint8, lifeLength uint16, scaler [2]int16, damage uint8, x, y, w, h int32) {
+	rect := sdl.Rect{X: x - w/2, Y: y - h/2, W: w, H: h}
+	radius := math.Sqrt(math.Pow(float64(h/2), 2) + math.Pow(float64(w/2), 2))
+	projectile := Projectile{x: x, id: state.AssignID(), y: y, rect: &rect, color: color, hitBoxRadius: uint8(radius), lifeLength: lifeLength, scaler: scaler, damage: damage}
+	*state.Projectiles = append(*state.Projectiles, projectile)
 }
 
 // texturePath := ,,media/name.png
@@ -139,11 +143,19 @@ func (state *gameState) initPlayer(x, y int32, speed uint8, texturePath string) 
 	}
 
 	radius := math.Sqrt(math.Pow(float64(h/2), 2) + math.Pow(float64(w/2), 2))
-	player := Player{x: x, y: y, texture: texture, id: state.AssignID(), speed: speed, eventList: eventList, hitBoxRadius: uint8(radius)}
+	player := Player{x: x, y: y, texture: texture, id: state.AssignID(), speed: speed, eventList: eventList, hitBoxRadius: uint8(radius), ammo: 2, cooldown: 0}
 	state.Player = &player
 }
 
 func (state *gameState) Update() {
 	state.Player.checkEventList(state)
+	// needs Testing <- written in a hurry
+	if state.Player.cooldown > 0 {
+		state.Player.cooldown -= 1
+		if state.Player.cooldown == 0 {
+			state.Player.ammo = 12
+		}
+	}
+	state.moveProjectiles()
 	state.blit(*state.Player)
 }

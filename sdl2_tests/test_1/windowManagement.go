@@ -7,13 +7,25 @@ import (
 	"github.com/veandco/go-sdl2/sdl"
 )
 
-func (state *gameState) drawAllGameObjects() {
+func (state *gameState) drawEnemies() {
 	for _, enemy := range *state.Enemies {
 		state.renderer.SetDrawColor(enemy.color[0], enemy.color[1], enemy.color[2], 255)
-		state.renderer.FillRect(&enemy.rect)
+		state.renderer.FillRect(enemy.rect)
 		gfx.CircleRGBA(state.renderer, enemy.x, enemy.y, int32(enemy.hitBoxRadius), 255, 0, 0, 255)
-		state.renderer.DrawLine(enemy.x, enemy.y, state.Player.x, state.Player.y)
 	}
+}
+
+func (state *gameState) drawProjectiles() {
+	for _, projectile := range *state.Projectiles {
+		state.renderer.SetDrawColor(projectile.color[0], projectile.color[1], projectile.color[2], 255)
+		state.renderer.FillRect(projectile.rect)
+		gfx.CircleRGBA(state.renderer, projectile.x, projectile.y, int32(projectile.hitBoxRadius), 255, 0, 0, 255)
+	}
+}
+
+func (state *gameState) drawAllObjects() {
+	state.drawEnemies()
+	state.drawProjectiles()
 	state.renderer.Present()
 }
 

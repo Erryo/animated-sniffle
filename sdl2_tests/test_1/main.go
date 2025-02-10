@@ -26,13 +26,13 @@ func main() {
 		panic(err)
 	}
 
-	state := gameState{window: window, renderer: renderer, Enemies: &[]Enemy{}}
+	state := gameState{window: window, nextID: 1, renderer: renderer, Enemies: &[]Enemy{}, Projectiles: &[]Projectile{}}
 
-	state.initPlayer(WINDOW_WIDTH/2, WINDOW_HEIGHT/2, 15, "media/player.png")
-	state.initObject(BLUE, 140, 140, 70, 70)
-	state.initObject(MAGENTA, 560, 450, 20, 40)
-	state.initObject(YELLOW, 240, 120, 10, 30)
-	state.initObject(CYAN, 700, 500, 40, 20)
+	state.initPlayer(WINDOW_WIDTH/2, WINDOW_HEIGHT/2, 10, "media/player.png")
+	state.initObject(BLUE, 140, 140, 70, 70, 2)
+	state.initObject(MAGENTA, 580, 360, 20, 20, 2)
+	state.initObject(YELLOW, 240, 120, 10, 30, 2)
+	state.initObject(CYAN, 700, 500, 40, 20, 2)
 
 	state.loadMedia()
 

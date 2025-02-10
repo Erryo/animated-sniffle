@@ -1,0 +1,41 @@
+package main
+
+import (
+	"fmt"
+
+	"github.com/veandco/go-sdl2/gfx"
+	"github.com/veandco/go-sdl2/sdl"
+)
+
+func (state *gameState) drawAllGameObjects() {
+	for _, enemy := range *state.Enemies {
+		state.renderer.SetDrawColor(enemy.color[0], enemy.color[1], enemy.color[2], 255)
+		state.renderer.FillRect(&enemy.rect)
+		gfx.CircleRGBA(state.renderer, enemy.x+enemy.rect.W/2, enemy.y+enemy.rect.H/2, int32(enemy.hitBoxRadius), 255, 0, 0, 255)
+	}
+	state.renderer.Present()
+}
+
+func (state *gameState) prepareScene() {
+	state.renderer.SetDrawColor(255, 255, 255, 255)
+	state.renderer.Clear()
+	if err := state.renderer.Copy(state.backgroundImage, nil, nil); err != nil {
+		fmt.Println("Error copying backgroundImage: ", err)
+	}
+}
+
+func (state *gameState) blit(player Player) {
+	var err error
+	dst := sdl.Rect{X: int32(player.x), Y: int32(player.y)}
+	_, _, dst.W, dst.H, err = player.texture.Query()
+	if err != nil {
+		fmt.Println("Error blint´ng player:", err)
+	}
+	state.renderer.Copy(player.texture, nil, &dst)
+
+	_, _, w, h, err := player.texture.Query()
+	if err != nil {
+		panic(err)
+	}
+	gfx.CircleRGBA(state.renderer, player.x+w/2, player.y+h/2, int32(player.hitBoxRadius), 255, 0, 0, 255)
+}
