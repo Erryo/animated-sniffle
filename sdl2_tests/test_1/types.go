@@ -29,7 +29,7 @@ type Projectile struct {
 type Enemy struct {
 	id           uint16
 	x, y         int32
-	hp           uint8
+	hp           int8
 	rect         *sdl.Rect
 	hitBoxRadius uint8
 	direction    int8

@@ -115,7 +115,7 @@ func (state *gameState) AssignID() uint16 {
 	return state.nextID - 1
 }
 
-func (state *gameState) initObject(color [3]uint8, x, y, w, h int32, hp uint8) {
+func (state *gameState) initObject(color [3]uint8, x, y, w, h int32, hp int8) {
 	rect := sdl.Rect{X: x - w/2, Y: y - h/2, W: w, H: h}
 	radius := math.Sqrt(math.Pow(float64(h/2), 2) + math.Pow(float64(w/2), 2))
 	enemy := Enemy{x: x, y: y, rect: &rect, color: color, id: state.AssignID(), hitBoxRadius: uint8(radius), hp: hp}

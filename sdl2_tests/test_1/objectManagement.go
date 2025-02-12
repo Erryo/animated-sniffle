@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"math"
 )
 
@@ -10,17 +9,10 @@ func (state *gameState) moveProjectiles() {
 		newX := projectile.x + int32(projectile.scaler[0])
 		newY := projectile.y + int32(projectile.scaler[1])
 		willColide, enemy := willCollide(state, newX, newY, projectile.hitBoxRadius)
-		if willColide {
-			if enemy != nil {
-				if enemy.hp <= projectile.damage {
-					fmt.Println(enemy)
-					state.destroyEnemy(enemy)
-				} else {
-					(*enemy).hp -= 1
-					fmt.Println(enemy.hp)
-
-				}
-			}
+		if willColide && enemy != nil {
+			enemy.takeDamage(projectile.damage, state)
+			state.destroyProjectile(idx)
+			return
 		}
 		if newX+int32(projectile.hitBoxRadius) > WINDOW_WIDTH || newX-int32(projectile.hitBoxRadius) < 0 {
 			state.destroyProjectile(idx)
@@ -38,7 +30,15 @@ func (state *gameState) moveProjectiles() {
 	}
 }
 
-func (state *gameState) destroyEnemy(enemy *Enemy) {
+func (enemy *Enemy) takeDamage(amount uint8, state *gameState) {
+	if enemy.hp <= int8(amount) {
+		enemy.destroyEnemy(state)
+	} else {
+		enemy.hp -= int8(amount)
+	}
+}
+
+func (enemy *Enemy) destroyEnemy(state *gameState) {
 	for idx, obj := range *state.Enemies {
 		if obj.id == enemy.id && enemy.id != 0 {
 			if idx == 0 {
@@ -69,10 +69,12 @@ func (state *gameState) destroyProjectile(idx int) {
 }
 
 func willCollide(state *gameState, x, y int32, hitBoxRadius uint8) (bool, *Enemy) {
-	for _, enemy := range *state.Enemies {
+	for idx, enemy := range *state.Enemies {
 		distance := math.Sqrt(math.Pow(float64(enemy.x-x), 2) + math.Pow(float64(enemy.y-y), 2))
 		if distance < float64(enemy.hitBoxRadius+hitBoxRadius) {
-			return true, &enemy
+			// using idx to create the  pointer because the variable enemy that range gives
+			// is not the same as state.Enemies[idx]
+			return true, &((*state.Enemies)[idx])
 		}
 	}
 	return false, &Enemy{}
