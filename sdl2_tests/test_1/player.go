@@ -1,5 +1,7 @@
 package main
 
+import "fmt"
+
 func (player *Player) checkEventList(state *gameState) {
 	if player.eventList[0] {
 		if player.eventList[1] || player.eventList[3] {
@@ -101,10 +103,26 @@ func (player *Player) fire(state *gameState) {
 		return
 	}
 	if player.ammo-1 == 0 {
-		player.cooldown = 64 * 2
+		player.cooldown = PLAYER_RELOAD_COOLDOWD
+		player.reloading = true
+	} else {
+		player.cooldown = 30
 	}
-	state.initProjectile(RED, 64*3, [2]int16{12, 0}, 1, player.x, player.y, 10, 10)
+	fmt.Println(player.ammo, player.cooldown)
+	state.initProjectile(RED, 64*3, 10, 1, player.x, player.y, 10, 10)
 	player.ammo -= 1
+}
+
+func (player *Player) handleFireCooldown() {
+	if player.cooldown > 0 {
+		player.cooldown -= 1
+		if player.cooldown == 0 {
+			if player.reloading {
+				player.ammo = player.magazine_size
+				player.reloading = false
+			}
+		}
+	}
 }
 
 func (player *Player) changeRotation(angle int16) {

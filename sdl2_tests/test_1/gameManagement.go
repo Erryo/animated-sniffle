@@ -115,18 +115,29 @@ func (state *gameState) AssignID() uint16 {
 	return state.nextID - 1
 }
 
-func (state *gameState) initObject(color [3]uint8, x, y, w, h int32, hp int8) {
+func (state *gameState) initObject(color [3]uint8, scaler [2]int16, x, y, w, h int32, hp int8) {
 	rect := sdl.Rect{X: x - w/2, Y: y - h/2, W: w, H: h}
 	radius := math.Sqrt(math.Pow(float64(h/2), 2) + math.Pow(float64(w/2), 2))
-	enemy := Enemy{x: x, y: y, rect: &rect, color: color, id: state.AssignID(), hitBoxRadius: uint8(radius), hp: hp}
+	enemy := Enemy{x: x, y: y, scaler: scaler, rect: &rect, color: color, id: state.AssignID(), hitBoxRadius: uint8(radius), hp: hp}
 	*state.Enemies = append(*state.Enemies, enemy)
 }
 
-func (state *gameState) initProjectile(color [3]uint8, lifeLength uint16, scaler [2]int16, damage uint8, x, y, w, h int32) {
+func (state *gameState) initProjectile(color [3]uint8, lifeLength uint16, speed, damage uint8, x, y, w, h int32) {
 	rect := sdl.Rect{X: x - w/2, Y: y - h/2, W: w, H: h}
 	radius := math.Sqrt(math.Pow(float64(h/2), 2) + math.Pow(float64(w/2), 2))
-	projectile := Projectile{x: x, id: state.AssignID(), y: y, rect: &rect, color: color, hitBoxRadius: uint8(radius), lifeLength: lifeLength, scaler: scaler, damage: damage}
+	var scaler [2]float32
+	// x = sin(a)/1
+	scaler[0] = float32(math.Sin(degreeToRad(state.Player.rotation)))
+	scaler[1] = -float32(math.Cos(degreeToRad(state.Player.rotation)))
+	projectile := Projectile{
+		x: x, id: state.AssignID(), y: y, rect: &rect, color: color,
+		hitBoxRadius: uint8(radius), lifeLength: lifeLength, scaler: scaler, speed: speed, damage: damage,
+	}
 	*state.Projectiles = append(*state.Projectiles, projectile)
+}
+
+func degreeToRad(angle int16) float64 {
+	return float64(angle) * math.Pi / 180
 }
 
 // texturePath := ,,media/name.png
@@ -143,19 +154,20 @@ func (state *gameState) initPlayer(x, y int32, speed uint8, texturePath string) 
 	}
 
 	radius := math.Sqrt(math.Pow(float64(h/2), 2) + math.Pow(float64(w/2), 2))
-	player := Player{x: x, y: y, texture: texture, id: state.AssignID(), speed: speed, eventList: eventList, hitBoxRadius: uint8(radius), ammo: 2, cooldown: 0}
+	player := Player{
+		x: x, y: y, texture: texture, id: state.AssignID(), speed: speed,
+		eventList: eventList, hitBoxRadius: uint8(radius),
+		ammo: PLAYER_MAG_SIZE, magazine_size: PLAYER_MAG_SIZE, cooldown: 0,
+	}
 	state.Player = &player
 }
 
 func (state *gameState) Update() {
 	state.Player.checkEventList(state)
 	// needs Testing <- written in a hurry
-	if state.Player.cooldown > 0 {
-		state.Player.cooldown -= 1
-		if state.Player.cooldown == 0 {
-			state.Player.ammo = 12
-		}
-	}
+
+	state.Player.handleFireCooldown()
+	state.moveEnemies()
 	state.moveProjectiles()
 	state.blit(*state.Player)
 }

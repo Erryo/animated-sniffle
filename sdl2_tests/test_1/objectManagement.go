@@ -6,8 +6,8 @@ import (
 
 func (state *gameState) moveProjectiles() {
 	for idx, projectile := range *state.Projectiles {
-		newX := projectile.x + int32(projectile.scaler[0])
-		newY := projectile.y + int32(projectile.scaler[1])
+		newX := projectile.x + int32(projectile.scaler[0]*float32(projectile.speed))
+		newY := projectile.y + int32(projectile.scaler[1]*float32(projectile.speed))
 		willColide, enemy := willCollide(state, newX, newY, projectile.hitBoxRadius)
 		if willColide && enemy != nil {
 			enemy.takeDamage(projectile.damage, state)
@@ -24,9 +24,27 @@ func (state *gameState) moveProjectiles() {
 		}
 		projectile.x = newX
 		projectile.y = newY
-		projectile.rect.X += int32(projectile.scaler[0])
-		projectile.rect.Y += int32(projectile.scaler[1])
+		projectile.rect.X += int32(projectile.scaler[0] * float32(projectile.speed))
+		projectile.rect.Y += int32(projectile.scaler[1] * float32(projectile.speed))
 		(*state.Projectiles)[idx] = projectile
+	}
+}
+
+func (state *gameState) moveEnemies() {
+	for idx, enemy := range *state.Enemies {
+		newX := enemy.x + int32(enemy.scaler[0])
+		newY := enemy.y + int32(enemy.scaler[1])
+		if newX+int32(enemy.hitBoxRadius) > WINDOW_WIDTH || newX-int32(enemy.hitBoxRadius) < 0 {
+			return
+		}
+		if newY+int32(enemy.hitBoxRadius) > WINDOW_HEIGHT || newY-int32(enemy.hitBoxRadius) < 0 {
+			return
+		}
+		enemy.x = newX
+		enemy.y = newY
+		enemy.rect.X += int32(enemy.scaler[0])
+		enemy.rect.Y += int32(enemy.scaler[1])
+		(*state.Enemies)[idx] = enemy
 	}
 }
 

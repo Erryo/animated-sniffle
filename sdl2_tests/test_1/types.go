@@ -21,14 +21,15 @@ type Projectile struct {
 	hitBoxRadius uint8
 	rect         *sdl.Rect
 	color        [3]uint8
-	// By how much the position sholud change each frame
-	scaler [2]int16
-	id     uint16
-	x, y   int32
+	speed        uint8
+	scaler       [2]float32
+	id           uint16
+	x, y         int32
 }
 type Enemy struct {
 	id           uint16
 	x, y         int32
+	scaler       [2]int16
 	hp           int8
 	rect         *sdl.Rect
 	hitBoxRadius uint8
@@ -36,25 +37,28 @@ type Enemy struct {
 	color        [3]uint8
 }
 type Player struct {
-	id    uint16
-	speed uint8
-	ammo  uint8
-	// shooting cooldown
-	cooldown     uint8
-	x, y         int32
-	texture      *sdl.Texture
-	hitBoxRadius uint8
-	rotation     int16
+	id            uint16
+	speed         uint8
+	magazine_size uint8
+	ammo          uint8
+	cooldown      uint16
+	x, y          int32
+	texture       *sdl.Texture
+	hitBoxRadius  uint8
+	rotation      int16
 	// The eventList tells if a key was pressed down and not lifted up
 	// the order: moveUp moveL moveDown moveRight Fire
 	eventList []bool
+	reloading bool
 }
 
 const (
 	WINDOW_WIDTH  = 900
 	WINDOW_HEIGHT = 600
-	//  time/frequency : 1000ms/24fps
-	GAME_UPDATE_DELAY = 17
+	//  time/frequency : 1000ms/60fps
+	GAME_UPDATE_DELAY      = 17
+	PLAYER_MAG_SIZE        = 10
+	PLAYER_RELOAD_COOLDOWD = 60 * 2
 )
 
 // Colors
