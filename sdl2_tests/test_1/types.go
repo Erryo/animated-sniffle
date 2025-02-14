@@ -13,6 +13,7 @@ type gameState struct {
 	Player          *Player
 	nextID          uint16
 	backgroundImage *sdl.Texture
+	TextManager     *TextManager
 }
 
 type Projectile struct {
@@ -33,7 +34,6 @@ type Enemy struct {
 	hp           int8
 	rect         *sdl.Rect
 	hitBoxRadius uint8
-	direction    int8
 	color        [3]uint8
 }
 type Player struct {
@@ -51,6 +51,10 @@ type Player struct {
 	eventList []bool
 	reloading bool
 }
+type TextManager struct {
+	fontMap *sdl.Texture
+	dict    *map[rune][2]uint8
+}
 
 const (
 	WINDOW_WIDTH  = 900
@@ -59,14 +63,19 @@ const (
 	GAME_UPDATE_DELAY      = 17
 	PLAYER_MAG_SIZE        = 10
 	PLAYER_RELOAD_COOLDOWD = 60 * 2
+	FONT_MAP_W             = 8
+	FONT_MAP_H             = 5
+	FONT_H                 = 20
+	FONT_W                 = 20
 )
 
 // Colors
 var (
-	MAGENTA = [3]uint8{231, 0, 106}
-	ORANGE  = [3]uint8{243, 152, 1}
-	YELLOW  = [3]uint8{248, 248, 69}
-	BLUE    = [3]uint8{1, 104, 183}
-	CYAN    = [3]uint8{50, 103, 183}
-	RED     = [3]uint8{255, 0, 0}
+	MAGENTA    = [3]uint8{231, 0, 106}
+	ORANGE     = [3]uint8{243, 152, 1}
+	YELLOW     = [3]uint8{248, 248, 69}
+	BLUE       = [3]uint8{1, 104, 183}
+	CYAN       = [3]uint8{50, 103, 183}
+	RED        = [3]uint8{255, 0, 0}
+	ALL_COLORS = [][3]uint8{MAGENTA, ORANGE, YELLOW, BLUE, CYAN}
 )

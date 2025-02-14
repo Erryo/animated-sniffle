@@ -26,10 +26,10 @@ func main() {
 		panic(err)
 	}
 
-	state := gameState{window: window, nextID: 1, renderer: renderer, Enemies: &[]Enemy{}, Projectiles: &[]Projectile{}}
+	state := gameState{window: window, nextID: 1, renderer: renderer, Enemies: &[]Enemy{}, Projectiles: &[]Projectile{}, TextManager: &TextManager{}}
+	state.TextManager.setDict()
 
 	state.initPlayer(WINDOW_WIDTH/2, WINDOW_HEIGHT/2, 7, "media/player.png")
-	state.initObject(CYAN, [2]int16{1, 1}, 600, 200, 40, 40, 5)
 
 	state.loadMedia()
 

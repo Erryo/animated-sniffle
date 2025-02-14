@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/veandco/go-sdl2/gfx"
 	"github.com/veandco/go-sdl2/sdl"
@@ -23,9 +24,14 @@ func (state *gameState) drawProjectiles() {
 	}
 }
 
+func (state *gameState) drawUI() {
+	state.TextManager.print(state.renderer, "Ammo:"+strconv.Itoa(int(state.Player.ammo)), 1, 0, 0)
+}
+
 func (state *gameState) drawAllObjects() {
 	state.drawEnemies()
 	state.drawProjectiles()
+	state.drawUI()
 	state.renderer.Present()
 }
 

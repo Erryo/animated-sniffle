@@ -32,7 +32,7 @@ func (player *Player) checkEventList(state *gameState) {
 func (player *Player) moveUp(state *gameState, speedModifier float32) {
 	newPlayerCoordinate := player.y - int32(float32(player.speed)*speedModifier)
 	if newPlayerCoordinate-int32(player.hitBoxRadius) > 0 {
-		if willColide, _ := willCollide(state, player.x, newPlayerCoordinate, player.hitBoxRadius); !willColide {
+		if willColide, _ := state.willCollide(player.x, newPlayerCoordinate, player.hitBoxRadius, -1); !willColide {
 			player.y = newPlayerCoordinate
 			if player.rotation == 0 || player.rotation == 360 {
 				return
@@ -49,7 +49,7 @@ func (player *Player) moveUp(state *gameState, speedModifier float32) {
 func (player *Player) moveDown(state *gameState, speedModifier float32) {
 	newPlayerCoordinate := player.y + int32(float32(player.speed)*speedModifier)
 	if newPlayerCoordinate+int32(player.hitBoxRadius) < WINDOW_HEIGHT {
-		if willColide, _ := willCollide(state, player.x, newPlayerCoordinate, player.hitBoxRadius); !willColide {
+		if willColide, _ := state.willCollide(player.x, newPlayerCoordinate, player.hitBoxRadius, -1); !willColide {
 			player.y = newPlayerCoordinate
 			if player.rotation == 180 {
 				return
@@ -66,7 +66,7 @@ func (player *Player) moveDown(state *gameState, speedModifier float32) {
 func (player *Player) moveLeft(state *gameState, speedModifier float32) {
 	newPlayerCoordinate := player.x - int32(float32(player.speed)*speedModifier)
 	if newPlayerCoordinate-int32(player.hitBoxRadius) > 0 {
-		if willColide, _ := willCollide(state, newPlayerCoordinate, player.y, player.hitBoxRadius); !willColide {
+		if willColide, _ := state.willCollide(newPlayerCoordinate, player.y, player.hitBoxRadius, -1); !willColide {
 			player.x = newPlayerCoordinate
 			if player.rotation == 270 {
 				return
@@ -83,7 +83,7 @@ func (player *Player) moveLeft(state *gameState, speedModifier float32) {
 func (player *Player) moveRight(state *gameState, speedModifier float32) {
 	newPlayerCoordinate := player.x + int32(float32(player.speed)*speedModifier)
 	if newPlayerCoordinate+int32(player.hitBoxRadius) < WINDOW_WIDTH {
-		if willColide, _ := willCollide(state, newPlayerCoordinate, player.y, player.hitBoxRadius); !willColide {
+		if willColide, _ := state.willCollide(newPlayerCoordinate, player.y, player.hitBoxRadius, -1); !willColide {
 			player.x = newPlayerCoordinate
 			if player.rotation == 90 {
 				return
