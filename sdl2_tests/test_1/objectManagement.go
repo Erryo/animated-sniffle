@@ -41,12 +41,10 @@ func (state *gameState) moveEnemies() {
 		newY := enemy.y + int32(enemy.scaler[1])
 		if newX+int32(enemy.hitBoxRadius) > WINDOW_WIDTH || newX-int32(enemy.hitBoxRadius) < 0 {
 			enemy.scaler[0] = enemy.scaler[0] * -1
-			enemy.scaler[1] = enemy.scaler[1] * -1
 			(*state.Enemies)[idx] = enemy
 			continue
 		}
 		if newY+int32(enemy.hitBoxRadius) > WINDOW_HEIGHT || newY-int32(enemy.hitBoxRadius) < 0 {
-			enemy.scaler[0] = enemy.scaler[0] * -1
 			enemy.scaler[1] = enemy.scaler[1] * -1
 			(*state.Enemies)[idx] = enemy
 			continue
@@ -194,7 +192,7 @@ func (state *gameState) initPlayer(x, y int32, speed uint8, texturePath string) 
 	if err != nil {
 		panic(err)
 	}
-	eventList := make([]bool, 6)
+	eventList := make([]bool, 8)
 
 	_, _, w, h, err := texture.Query()
 	if err != nil {

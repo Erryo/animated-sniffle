@@ -25,7 +25,12 @@ func (state *gameState) drawProjectiles() {
 }
 
 func (state *gameState) drawUI() {
-	state.TextManager.print(state.renderer, "Ammo:"+strconv.Itoa(int(state.Player.ammo)), 1, 0, 0)
+	ammoText := "Ammo:" + strconv.Itoa(int(state.Player.ammo))
+	rect := sdl.Rect{X: 0, Y: 0, W: int32(len(ammoText) * FONT_W * 2), H: FONT_W * 2}
+	state.renderer.SetDrawBlendMode(sdl.BLENDMODE_BLEND)
+	state.renderer.SetDrawColor(123, 123, 123, 120)
+	state.renderer.FillRect(&rect)
+	state.TextManager.print(state.renderer, ammoText, 2, 0, 0, 255, 255, 255)
 }
 
 func (state *gameState) drawAllObjects() {

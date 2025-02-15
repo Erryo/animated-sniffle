@@ -1,6 +1,10 @@
 package main
 
-import "github.com/veandco/go-sdl2/sdl"
+import (
+	"strings"
+
+	"github.com/veandco/go-sdl2/sdl"
+)
 
 func (textMan *TextManager) setDict() {
 	textMan.dict = &map[rune][2]uint8{
@@ -44,10 +48,13 @@ func (textMan *TextManager) setDict() {
 		',':  {5, 4},
 		'.':  {6, 4},
 		'\\': {7, 4},
+		' ':  {0, 5},
 	}
 }
 
-func (textMan *TextManager) print(renderer *sdl.Renderer, str string, scale uint8, x, y int32) {
+func (textMan *TextManager) print(renderer *sdl.Renderer, str string, scale uint8, x, y int32, r, g, b uint8) {
+	str = strings.ToLower(str)
+	textMan.fontMap.SetColorMod(r, g, b)
 	src := &sdl.Rect{X: 0, Y: 0, W: FONT_W, H: FONT_H}
 	dst := &sdl.Rect{X: x, Y: y, W: FONT_W * int32(scale), H: FONT_H * int32(scale)}
 	for _, rune := range str {
@@ -58,4 +65,5 @@ func (textMan *TextManager) print(renderer *sdl.Renderer, str string, scale uint
 		// just test
 		src.X += int32(FONT_W * scale)
 	}
+	textMan.fontMap.SetColorMod(255, 255, 255)
 }

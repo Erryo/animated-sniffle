@@ -30,8 +30,10 @@ func main() {
 	state.TextManager.setDict()
 
 	state.initPlayer(WINDOW_WIDTH/2, WINDOW_HEIGHT/2, 7, "media/player.png")
-
 	state.loadMedia()
 
+	if state.mainMenuLoop() {
+		return
+	}
 	state.gameLoop()
 }

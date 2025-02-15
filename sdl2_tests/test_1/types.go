@@ -47,7 +47,7 @@ type Player struct {
 	hitBoxRadius  uint8
 	rotation      int16
 	// The eventList tells if a key was pressed down and not lifted up
-	// the order: moveUp moveL moveDown moveRight Fire
+	// the order: moveUp moveL moveDown moveRight Fire RotateRight RotateLeft
 	eventList []bool
 	reloading bool
 }
