@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/veandco/go-sdl2/mix"
 	"github.com/veandco/go-sdl2/sdl"
 )
 
@@ -8,6 +9,7 @@ import (
 type gameState struct {
 	window          *sdl.Window
 	renderer        *sdl.Renderer
+	music           *mix.Music
 	Enemies         *[]Enemy
 	Projectiles     *[]Projectile
 	Player          *Player
@@ -38,6 +40,7 @@ type Enemy struct {
 }
 type Player struct {
 	id            uint16
+	shootEff      *mix.Chunk
 	speed         uint8
 	magazine_size uint8
 	ammo          uint8
