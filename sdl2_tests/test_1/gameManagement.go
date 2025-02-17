@@ -1,6 +1,8 @@
 package main
 
 import (
+	"time"
+
 	"github.com/veandco/go-sdl2/img"
 	"github.com/veandco/go-sdl2/mix"
 	"github.com/veandco/go-sdl2/sdl"
@@ -9,9 +11,11 @@ import (
 func (state *gameState) gameLoop() {
 	running := true
 
+	start := time.Now()
 outerGameLoop:
 	for running {
 
+		start = time.Now()
 		if state.doInput() {
 			running = false
 			break outerGameLoop
@@ -19,6 +23,7 @@ outerGameLoop:
 
 		state.prepareScene()
 		state.Update()
+		state.TextManager.print(state.renderer, "fT:"+time.Since(start).String(), 1, WINDOW_WIDTH-300, 0, 255, 255, 255)
 		state.drawAllObjects()
 
 		sdl.Delay(GAME_UPDATE_DELAY)
