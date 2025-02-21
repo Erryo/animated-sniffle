@@ -55,8 +55,18 @@ type Player struct {
 	reloading bool
 }
 type TextManager struct {
-	fontMap *sdl.Texture
-	dict    *map[rune][2]uint8
+	fontMap  *sdl.Texture
+	dict     *map[rune][2]uint8
+	elements *[]dataElement
+}
+type dataElement struct {
+	data    interface{}
+	name    string
+	prefix  string
+	x, y    int32
+	size    uint8
+	r, g, b uint8
+	id      uint16
 }
 
 const (

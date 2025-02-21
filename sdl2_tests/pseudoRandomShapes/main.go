@@ -2,6 +2,7 @@ package main
 
 import (
 	"math"
+	"math/rand"
 
 	"github.com/veandco/go-sdl2/sdl"
 )
@@ -24,7 +25,9 @@ func main() {
 		panic(err)
 	}
 
-	points := offsetPoints(createShape())
+	// points := offsetPoints(createShape())
+	points := offsetPoints(createTriangle())
+
 	running := true
 	for running {
 		for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
@@ -42,21 +45,37 @@ func main() {
 		renderer.DrawPoint(400, 400)
 		renderer.SetDrawColor(255, 255, 255, 255)
 		renderer.DrawPoints(points)
-		calcDist(points, renderer)
+
+		// calcDist(points, renderer)
+		drawTriangle(points, renderer)
 		renderer.Present()
+		// subtractive(points, renderer)
+		//	subtractiveMixed(points, renderer)
 	}
+}
+
+func drawTriangle(points []sdl.Point, renderer *sdl.Renderer) {
+}
+
+func createTriangle() []sdl.Point {
+	points := []sdl.Point{}
+	p := sdl.Point{X: 100, Y: 0}
+	p1 := sdl.Point{X: 0, Y: -100}
+	p2 := sdl.Point{X: -100, Y: 0}
+	points = append(points, p, p1, p2)
+	return points
 }
 
 func createShape() []sdl.Point {
 	points := []sdl.Point{}
-	p := sdl.Point{X: 100, Y: 100}
+	p := sdl.Point{X: 70, Y: 70}
 	p1 := sdl.Point{X: 100, Y: 0}
 	p2 := sdl.Point{X: 0, Y: 100}
-	p3 := sdl.Point{X: -100, Y: -100}
+	p3 := sdl.Point{X: -70, Y: -70}
 	p4 := sdl.Point{X: 0, Y: -100}
 	p5 := sdl.Point{X: -100, Y: 0}
-	p6 := sdl.Point{X: -100, Y: 100}
-	p7 := sdl.Point{X: 100, Y: -100}
+	p6 := sdl.Point{X: -70, Y: 70}
+	p7 := sdl.Point{X: 70, Y: -70}
 	points = append(points, p, p1, p2, p3, p4, p5, p6, p7)
 	return points
 }
@@ -79,6 +98,24 @@ func calcDist(points []sdl.Point, renderer *sdl.Renderer) {
 			}
 		}
 		renderer.DrawLine(p1.X, p1.Y, points[lowest_idx].X, points[lowest_idx].Y)
+	}
+}
+
+func subtractive(points []sdl.Point, renderer *sdl.Renderer) {
+	for _, p1 := range points {
+		for _, p2 := range points {
+			if rand.Intn(100) > 60 {
+				renderer.DrawLine(p1.X, p1.Y, p2.X, p2.Y)
+			}
+		}
+	}
+}
+
+func subtractiveMixed(points []sdl.Point, renderer *sdl.Renderer) {
+	for _, p1 := range points {
+		for _, p2 := range points {
+			renderer.DrawLine(p1.X, p2.X, p1.Y, p2.Y)
+		}
 	}
 }
 

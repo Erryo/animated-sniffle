@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/veandco/go-sdl2/sdl"
@@ -52,18 +54,99 @@ func (textMan *TextManager) setDict() {
 	}
 }
 
-func (textMan *TextManager) print(renderer *sdl.Renderer, str string, scale uint8, x, y int32, r, g, b uint8) {
+func (tM *TextManager) print(renderer *sdl.Renderer, str string, scale uint8, x, y int32, r, g, b uint8) {
 	str = strings.ToLower(str)
-	textMan.fontMap.SetColorMod(r, g, b)
+	tM.fontMap.SetColorMod(r, g, b)
 	src := &sdl.Rect{X: 0, Y: 0, W: FONT_W, H: FONT_H}
 	dst := &sdl.Rect{X: x, Y: y, W: FONT_W * int32(scale), H: FONT_H * int32(scale)}
 	for _, rune := range str {
-		src.X = int32((*textMan.dict)[rune][0] * FONT_W)
-		src.Y = int32((*textMan.dict)[rune][1] * FONT_H)
-		renderer.Copy(textMan.fontMap, src, dst)
+		src.X = int32((*tM.dict)[rune][0] * FONT_W)
+		src.Y = int32((*tM.dict)[rune][1] * FONT_H)
+		renderer.Copy(tM.fontMap, src, dst)
 		dst.X += int32(FONT_W*scale) - 4
 		// just test
 		src.X += int32(FONT_W * scale)
 	}
-	textMan.fontMap.SetColorMod(255, 255, 255)
+	tM.fontMap.SetColorMod(255, 255, 255)
+}
+
+func (tM *TextManager) drawElements(renderer *sdl.Renderer) {
+	var str string
+	var dataStr string
+	for _, elem := range *tM.elements {
+		switch data := elem.data.(type) {
+		case *string:
+			dataStr = *data
+		case *int:
+			fmt.Println("drawn int")
+			dataStr = strconv.Itoa(*data)
+		case *float64:
+			dataStr = strconv.FormatFloat(*data, 'f', 3, 64)
+		case *float32:
+			dataStr = strconv.FormatFloat(float64(*data), 'f', 3, 32)
+		case *uint:
+			dataStr = strconv.Itoa(int(*data))
+		case *uint8:
+			dataStr = strconv.Itoa(int(*data))
+		case *uint16:
+			dataStr = strconv.Itoa(int(*data))
+		case *uint32:
+			dataStr = strconv.Itoa(int(*data))
+		case *uint64:
+			dataStr = strconv.Itoa(int(*data))
+		case *int8:
+			dataStr = strconv.Itoa(int(*data))
+		case *int16:
+			dataStr = strconv.Itoa(int(*data))
+		case *int32:
+			dataStr = strconv.Itoa(int(*data))
+		case *int64:
+			dataStr = strconv.Itoa(int(*data))
+		case nil:
+		default:
+			fmt.Printf("%T", elem.data)
+		}
+		str = elem.prefix + dataStr
+		tM.print(renderer, str, elem.size, elem.x, elem.y, elem.r, elem.g, elem.b)
+	}
+}
+
+func (tM *TextManager) addElement(data interface{}, name, prefix string, x, y int32, size, r, g, b uint8, id uint16) error {
+	if name != "" {
+		for idx, elem := range *tM.elements {
+			if elem.name == name {
+				return fmt.Errorf("element with name %v already exists at: %v", name, &(*tM.elements)[idx])
+			}
+		}
+	}
+	element := dataElement{data: data, name: name, prefix: prefix, x: x, y: y, size: size, r: r, g: g, b: b, id: id}
+	*tM.elements = append(*tM.elements, element)
+	return nil
+}
+
+func (tM *TextManager) getElementByData(data interface{}) *dataElement {
+	for idx, elem := range *tM.elements {
+		if elem.data == data {
+			return &(*tM.elements)[idx]
+		}
+	}
+	return nil
+}
+
+func (tM *TextManager) getElementByName(name string) (*dataElement, error) {
+	if name == "" {
+		return nil, fmt.Errorf("Cant get elemnt by empty name")
+	}
+
+	for idx, elem := range *tM.elements {
+		fmt.Println(elem.name)
+		if elem.name == name {
+			return &(*tM.elements)[idx], nil
+		}
+	}
+	return nil, fmt.Errorf("No element found")
+}
+
+func (tM *TextManager) clearElements() {
+	tM.elements = &[]dataElement{}
 }

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/veandco/go-sdl2/img"
@@ -11,7 +12,12 @@ import (
 func (state *gameState) gameLoop() {
 	running := true
 
-	start := time.Now()
+	var start time.Time
+	var frameTime string
+
+	state.TextManager.addElement(&frameTime, "", "fT:", WINDOW_WIDTH-300, 0, 1, 255, 255, 255, state.AssignID())
+	state.TextManager.addElement(&state.Player.ammo, "", "Ammo:", 0, 0, 2, 255, 255, 255, state.AssignID())
+
 outerGameLoop:
 	for running {
 
@@ -23,7 +29,8 @@ outerGameLoop:
 
 		state.prepareScene()
 		state.Update()
-		state.TextManager.print(state.renderer, "fT:"+time.Since(start).String(), 1, WINDOW_WIDTH-300, 0, 255, 255, 255)
+		frameTime = time.Since(start).String()
+		//		state.TextManager.print(state.renderer, "fT:"+time.Since(start).String(), 1, WINDOW_WIDTH-300, 0, 255, 255, 255)
 		state.drawAllObjects()
 
 		sdl.Delay(GAME_UPDATE_DELAY)
@@ -36,6 +43,11 @@ func (state *gameState) mainMenuLoop() bool {
 	var offset int32
 	offset = 1
 	startTextY = 460
+	animatedStartText, err := state.TextManager.getElementByName("startbutton")
+	if err != nil {
+		fmt.Println(err)
+	}
+
 	for running {
 
 		for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
@@ -58,18 +70,21 @@ func (state *gameState) mainMenuLoop() bool {
 		}
 
 		state.prepareScene()
-		state.TextManager.print(state.renderer, "Sniffle", 3, (WINDOW_WIDTH-7*FONT_W*3)/2, 120, 255, 255, 255)
+		// state.TextManager.print(state.renderer, "Sniffle", 3, (WINDOW_WIDTH-7*FONT_W*3)/2, 120, 255, 255, 255)
 
-		state.TextManager.print(state.renderer, "Shoots", 5, (WINDOW_WIDTH-6*FONT_W*5)/2+2, 202, 123, 123, 123)
-		state.TextManager.print(state.renderer, "Shoots", 5, (WINDOW_WIDTH-6*FONT_W*5)/2, 200, 255, 255, 255)
+		// state.TextManager.print(state.renderer, "Shoots", 5, (WINDOW_WIDTH-6*FONT_W*5)/2+2, 202, 123, 123, 123)
+		// state.TextManager.print(state.renderer, "Shoots", 5, (WINDOW_WIDTH-6*FONT_W*5)/2, 200, 255, 255, 255)
 
-		state.TextManager.print(state.renderer, "Asteroids", 4, (WINDOW_WIDTH-9*FONT_W*4)/2, 320, 255, 255, 255)
-		if startTextY > 470 || startTextY < 450 {
-			offset = offset * -1
+		// state.TextManager.print(state.renderer, "Asteroids", 4, (WINDOW_WIDTH-9*FONT_W*4)/2, 320, 255, 255, 255)
+		if animatedStartText != nil {
+			if startTextY > 470 || startTextY < 450 {
+				offset = offset * -1
+			}
+			startTextY += offset
+			animatedStartText.y = startTextY
+
 		}
-		startTextY += offset
-
-		state.TextManager.print(state.renderer, "Press Fire to Start", 1, (WINDOW_WIDTH-17*FONT_W*1)/2, startTextY, 255, 255, 255)
+		state.TextManager.drawElements(state.renderer)
 		state.renderer.Present()
 		sdl.Delay(GAME_UPDATE_DELAY)
 	}
