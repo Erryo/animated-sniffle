@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"runtime"
 
 	"github.com/veandco/go-sdl2/img"
 	"github.com/veandco/go-sdl2/mix"
@@ -9,6 +10,7 @@ import (
 )
 
 func main() {
+	runtime.LockOSThread()
 	var err error
 	if err = sdl.Init(sdl.INIT_EVERYTHING); err != nil {
 		panic(err)

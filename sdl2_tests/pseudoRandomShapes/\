@@ -5,7 +5,6 @@ import (
 	"log"
 	"math"
 	"math/rand"
-	"sync"
 
 	"github.com/veandco/go-sdl2/sdl"
 )
@@ -32,9 +31,6 @@ func main() {
 		panic(err)
 	}
 
-	var wg sync.WaitGroup
-	var mu sync.Mutex
-
 	//	points := offsetPoints(createShape())
 	//	points, lines := createTriangle()
 	//	points := randomTriangle([]sdl.Point{})
@@ -51,7 +47,9 @@ func main() {
 	//
 	// verts0 := pointsToVertex(points0)
 	//	points := []sdl.Point{{414, 480}, {406, 417}, {468, 481}}
-	//
+	points := randomTriangle([]sdl.Point{})
+	points = offsetPoints(points)
+	verts := pointsToVertex(points)
 
 	running := true
 	for running {
@@ -72,52 +70,35 @@ func main() {
 		//	if err := renderer.RenderGeometry(nil, verts, nil); err != nil {
 		//		log.Panic(err)
 		//	}
-		for range 10 {
-			wg.Add(1)
-			go func() {
-				defer wg.Done()
-				createAndDrawTriangle(renderer, window, &mu)
-			}()
+		drawTriangle(pointsToLines(points), renderer)
+		if err := renderer.RenderGeometry(nil, verts, nil); err != nil {
+			log.Panic(err)
 		}
 
-		wg.Wait()
 		renderer.Present()
+		sdl.Delay(750)
 
 	}
 	fmt.Println("Quit")
 }
 
-func createAndDrawTriangle(renderer *sdl.Renderer, window *sdl.Window, mu *sync.Mutex) {
-	var points []sdl.Point
-	var verts []sdl.Vertex
-	points = randomTriangle([]sdl.Point{})
-	points = offsetPoints(points, window)
-	verts = pointsToVertex(points)
-
-	mu.Lock()
-	//	drawTriangle(pointsToLines(points), renderer)
-	if err := renderer.RenderGeometry(nil, verts, nil); err != nil {
-		log.Panic(err)
-	}
-	mu.Unlock()
-}
-
 func randomTriangle(points []sdl.Point) []sdl.Point {
 	var radius int
 	var point sdl.Point
-	for radius <= 80 {
-		radius = rand.Intn(350)
+	for radius <= 0 {
+		radius = rand.Intn(150)
 	}
 
 	invalidPoint := true
 	for len(points) < 3 {
 		invalidPoint = true
+		fmt.Println(len(points))
 	invPoint:
 		for invalidPoint {
 			point = sdl.Point{X: rand.Int31n(int32(radius)), Y: rand.Int31n(int32(radius))}
+			fmt.Println(points, point, radius)
 			for _, p := range points {
-				if distBetwPoints(p, point) < float64(radius)/10 {
-					fmt.Println(points, point, radius)
+				if distBetwPoints(p, point) < 50 {
 					continue invPoint
 				}
 			}
@@ -153,9 +134,10 @@ func randInt(min, max int32) int32 {
 
 func pointsToVertex(points []sdl.Point) []sdl.Vertex {
 	var vertices []sdl.Vertex
+	color := sdl.Color{255, 255, 255, 255}
 	for _, p := range points {
 		fpoint := sdl.FPoint{float32(p.X), float32(p.Y)}
-		vert := sdl.Vertex{Position: fpoint, Color: sdl.Color{uint8(rand.Intn(255)), uint8(rand.Intn(255)), uint8(rand.Intn(255)), 255}}
+		vert := sdl.Vertex{Position: fpoint, Color: color}
 		vertices = append(vertices, vert)
 	}
 	return vertices
@@ -240,11 +222,10 @@ func subtractiveMixed(points []sdl.Point, renderer *sdl.Renderer) {
 	}
 }
 
-func offsetPoints(points []sdl.Point, window *sdl.Window) []sdl.Point {
-	W, H := window.GetSize()
+func offsetPoints(points []sdl.Point) []sdl.Point {
 	for idx := range points {
-		points[idx].X += W / 4
-		points[idx].Y += H / 4
+		points[idx].X += 400
+		points[idx].Y += 400
 	}
 	return points
 }

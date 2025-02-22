@@ -70,12 +70,6 @@ func (state *gameState) mainMenuLoop() bool {
 		}
 
 		state.prepareScene()
-		// state.TextManager.print(state.renderer, "Sniffle", 3, (WINDOW_WIDTH-7*FONT_W*3)/2, 120, 255, 255, 255)
-
-		// state.TextManager.print(state.renderer, "Shoots", 5, (WINDOW_WIDTH-6*FONT_W*5)/2+2, 202, 123, 123, 123)
-		// state.TextManager.print(state.renderer, "Shoots", 5, (WINDOW_WIDTH-6*FONT_W*5)/2, 200, 255, 255, 255)
-
-		// state.TextManager.print(state.renderer, "Asteroids", 4, (WINDOW_WIDTH-9*FONT_W*4)/2, 320, 255, 255, 255)
 		if animatedStartText != nil {
 			if startTextY > 470 || startTextY < 450 {
 				offset = offset * -1
