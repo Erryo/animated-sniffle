@@ -9,14 +9,20 @@ import (
 	"github.com/veandco/go-sdl2/sdl"
 )
 
-func (state *gameState) gameLoop() {
+// Rework is needed
+// Level struct needed (just because of TextELements YAYYY)
+// basically separate the state from each level(menu)
+// OVERKILL
+// THIS GAME ONLY NEEDS 2 MENUS
+
+func (state *state) gameLoop() {
 	running := true
 
 	var start time.Time
 	var frameTime string
 
-	state.TextManager.addElement(&frameTime, "", "fT:", WINDOW_WIDTH-300, 0, 1, 255, 255, 255, state.AssignID())
-	state.TextManager.addElement(&state.Player.ammo, "", "Ammo:", 0, 0, 2, 255, 255, 255, state.AssignID())
+	// state.TextManager.addElement(&frameTime, "", "fT:", WINDOW_WIDTH-300, 0, 1, 255, 255, 255, state.AssignID())
+	// state.TextManager.addElement(&state.Player.ammo, "", "Ammo:", 0, 0, 2, 255, 255, 255, state.AssignID())
 
 outerGameLoop:
 	for running {
@@ -37,13 +43,13 @@ outerGameLoop:
 	}
 }
 
-func (state *gameState) mainMenuLoop() bool {
+func (state *state) mainMenuLoop() bool {
 	running := true
 	var startTextY int32
 	var offset int32
 	offset = 1
 	startTextY = 460
-	animatedStartText, err := state.TextManager.getElementByName("startbutton")
+	// animatedStartText, err := state.TextManager.getElementByName("startbutton")
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -85,7 +91,7 @@ func (state *gameState) mainMenuLoop() bool {
 	return true
 }
 
-func (state *gameState) loadMedia() {
+func (state *state) loadMedia() {
 	var err error
 	if state.backgroundImage, err = img.LoadTexture(state.renderer, "media/background.png"); err != nil {
 		panic(err)
@@ -102,7 +108,7 @@ func (state *gameState) loadMedia() {
 }
 
 // returns true if recieved quit signal
-func (state *gameState) doInput() bool {
+func (state *state) doInput() bool {
 	for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
 		switch e := event.(type) {
 		case *sdl.QuitEvent:
@@ -112,7 +118,7 @@ func (state *gameState) doInput() bool {
 			return true
 		case *sdl.KeyboardEvent:
 			if e.Type == sdl.KEYDOWN {
-				state.doKeyDown(e)
+				return state.doKeyDown(e)
 			} else if e.Type == sdl.KEYUP {
 				state.doKeyUp(e)
 			}
@@ -122,9 +128,9 @@ func (state *gameState) doInput() bool {
 	return false
 }
 
-func (state *gameState) doKeyDown(event *sdl.KeyboardEvent) {
+func (state *state) doKeyDown(event *sdl.KeyboardEvent) bool {
 	if event.Repeat != 0 {
-		return
+		return false
 	}
 	switch event.Keysym.Scancode {
 	case sdl.SCANCODE_W:
@@ -145,10 +151,13 @@ func (state *gameState) doKeyDown(event *sdl.KeyboardEvent) {
 		state.Player.eventList[5] = true
 	case sdl.SCANCODE_E:
 		state.Player.eventList[6] = true
+	case sdl.SCANCODE_ESCAPE:
+		return state.switchToMainMenu()
 	}
+	return false
 }
 
-func (state *gameState) doKeyUp(event *sdl.KeyboardEvent) {
+func (state *state) doKeyUp(event *sdl.KeyboardEvent) {
 	switch event.Keysym.Scancode {
 	case sdl.SCANCODE_W:
 		state.Player.eventList[0] = false
@@ -170,7 +179,27 @@ func (state *gameState) doKeyUp(event *sdl.KeyboardEvent) {
 	}
 }
 
-func (state *gameState) QuitGame() {
+func (state *state) switchToMainMenu() bool {
+	state.TextManager.clearElements()
+	state.TextManager.addElement(nil, "", "Sniffle", (WINDOW_WIDTH-7*FONT_W*3)/2, 120, 3, 255, 255, 255, state.AssignID())
+	state.TextManager.addElement(nil, "", "Shoots", (WINDOW_WIDTH-6*FONT_W*5)/2+2, 202, 5, 123, 123, 123, state.AssignID())
+	state.TextManager.addElement(nil, "", "Shoots", (WINDOW_WIDTH-6*FONT_W*5)/2, 200, 5, 255, 255, 255, state.AssignID())
+	state.TextManager.addElement(nil, "", "Asteroids", (WINDOW_WIDTH-9*FONT_W*4)/2, 320, 4, 255, 255, 255, state.AssignID())
+	state.TextManager.addElement(nil, "startbutton", "Press Fire to Start", (WINDOW_WIDTH-17*FONT_W*1)/2, 460, 1, 255, 255, 255, state.AssignID())
+
+	if state.mainMenuLoop() {
+		return true
+	}
+	state.TextManager.clearElements()
+	state.switchToGameLevel()
+	return false
+}
+
+func (state *state) switchToGameLevel() {
+	state.TextManager.addElement(&state.Player.ammo, "", "Ammo:", 0, 0, 2, 255, 255, 255, state.AssignID())
+}
+
+func (state *state) QuitGame() {
 	mix.HaltChannel(-1)
 	mix.HaltMusic()
 	state.music.Free()
@@ -189,14 +218,14 @@ func (state *gameState) QuitGame() {
 	state.window = nil
 }
 
-func (state *gameState) CloseSDL() {
+func (state *state) CloseSDL() {
 	mix.CloseAudio()
 	mix.Quit()
 	img.Quit()
 	sdl.Quit()
 }
 
-func (state *gameState) Update() {
+func (state *state) Update() {
 	state.spawnEnemies()
 	state.Player.checkEventList(state)
 	// needs Testing <- written in a hurry
