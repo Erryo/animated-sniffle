@@ -6,19 +6,24 @@ import (
 )
 
 // Better called level state
-type gameState struct {
-	window          *sdl.Window
-	renderer        *sdl.Renderer
+type state struct {
+	window       *sdl.Window
+	renderer     *sdl.Renderer
+	textManager  *textManager
+	levels       *[]level
+	currentLevel *level
+}
+type level struct {
 	music           *mix.Music
-	Enemies         *[]Enemy
-	Projectiles     *[]Projectile
-	Player          *Player
-	nextID          uint16
+	dataElements    *[]dataElement
+	enemies         *[]enemy
+	projectiles     *[]projectile
+	player          *player
 	backgroundImage *sdl.Texture
-	TextManager     *TextManager
+	nextID          uint16
 }
 
-type Projectile struct {
+type projectile struct {
 	damage       uint8
 	lifeLength   uint16
 	hitBoxRadius uint8
@@ -29,44 +34,44 @@ type Projectile struct {
 	id           uint16
 	x, y         int32
 }
-type Enemy struct {
+type enemy struct {
 	id           uint16
 	x, y         int32
-	scaler       [2]int16
+	vector       [2]int16
 	hp           int8
 	rect         *sdl.Rect
 	hitBoxRadius uint8
 	color        [3]uint8
 }
-type Player struct {
+type player struct {
 	id            uint16
-	shootEff      *mix.Chunk
-	speed         uint8
-	magazine_size uint8
-	ammo          uint8
-	cooldown      uint16
-	x, y          int32
 	texture       *sdl.Texture
 	hitBoxRadius  uint8
+	x, y          int32
 	rotation      int16
+	speed         uint8
+	cooldown      uint16
+	magazine_size uint8
+	ammo          uint8
 	// The eventList tells if a key was pressed down and not lifted up
 	// the order: moveUp moveL moveDown moveRight Fire RotateRight RotateLeft
 	eventList []bool
 	reloading bool
+	shootEff  *mix.Chunk
 }
-type TextManager struct {
-	fontMap  *sdl.Texture
-	dict     *map[rune][2]uint8
-	elements *[]dataElement
+type textManager struct {
+	fontMap *sdl.Texture
+	dict    *map[rune][2]uint8
 }
+
 type dataElement struct {
-	data    interface{}
-	name    string
-	prefix  string
-	x, y    int32
-	size    uint8
-	r, g, b uint8
-	id      uint16
+	data   interface{}
+	name   string
+	prefix string
+	x, y   int32
+	size   uint8
+	color  [3]uint8
+	id     uint16
 }
 
 const (
