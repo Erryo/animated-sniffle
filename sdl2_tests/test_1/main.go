@@ -39,16 +39,18 @@ func main() {
 		panic(fmt.Errorf("error opeining audio:%v", err))
 	}
 
-	state := state{window: window, nextID: 1, renderer: renderer, Enemies: &[]enemy{}, Projectiles: &[]projectile{}, TextManager: &textManager{}}
-	state.textManager.setDict()
+	state := state{window: window, renderer: renderer, levels: []*level{}, currentLevel: &level{}}
+	state.setRuneToCoord()
 
-	state.initPlayer(WINDOW_WIDTH/2, WINDOW_HEIGHT/2, 7, "media/player.png")
+	state.createGameLevel()
+	state.createMainMenu()
+	state.currentLevel = state.getLevelByName("mainMenu")
+	state.currentLevel.player = state.getLevelByName("game").player
+
 	state.loadMedia()
 
-	state.textManager.elements = &[]dataElement{}
-
 	// Prepare Main Menu
-	if err := state.music.Play(-1); err != nil {
+	if err := state.currentLevel.music.Play(-1); err != nil {
 		fmt.Println(err)
 	}
 

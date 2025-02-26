@@ -9,11 +9,13 @@ import (
 type state struct {
 	window       *sdl.Window
 	renderer     *sdl.Renderer
-	textManager  *textManager
-	levels       *[]level
+	levels       []*level
 	currentLevel *level
+	fontMap      *sdl.Texture
+	runeToCoord  *map[rune][2]uint8
 }
 type level struct {
+	name            string
 	music           *mix.Music
 	dataElements    *[]dataElement
 	enemies         *[]enemy
@@ -30,7 +32,7 @@ type projectile struct {
 	rect         *sdl.Rect
 	color        [3]uint8
 	speed        uint8
-	scaler       [2]float32
+	vector       [2]float32
 	id           uint16
 	x, y         int32
 }
@@ -58,10 +60,6 @@ type player struct {
 	eventList []bool
 	reloading bool
 	shootEff  *mix.Chunk
-}
-type textManager struct {
-	fontMap *sdl.Texture
-	dict    *map[rune][2]uint8
 }
 
 type dataElement struct {
@@ -95,5 +93,6 @@ var (
 	BLUE       = [3]uint8{1, 104, 183}
 	CYAN       = [3]uint8{50, 103, 183}
 	RED        = [3]uint8{255, 0, 0}
+	WHITE      = [3]uint8{255, 255, 255}
 	ALL_COLORS = [][3]uint8{MAGENTA, ORANGE, YELLOW, BLUE, CYAN}
 )
