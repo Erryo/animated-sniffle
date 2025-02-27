@@ -2,37 +2,28 @@ package main
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/veandco/go-sdl2/img"
 	"github.com/veandco/go-sdl2/mix"
 	"github.com/veandco/go-sdl2/sdl"
 )
 
-// Rework is needed
-// Level struct needed (just because of TextELements YAYYY)
-// basically separate the state from each level(menu)
-// OVERKILL
-// THIS GAME ONLY NEEDS 2 MENUS
-
 func (state *state) gameLoop() {
 	running := true
 
-	var start time.Time
-	var frameTime string
-
-	// state.TextManager.addElement(&frameTime, "", "fT:", WINDOW_WIDTH-300, 0, 1, 255, 255, 255, state.AssignID())
-	// state.TextManager.addElement(&state.currentLevel.player.ammo, "", "Ammo:", 0, 0, 2, 255, 255, 255, state.AssignID())
-	elem, err := state.currentLevel.getElementByName("frameTime")
-	if err != nil {
-		fmt.Println(err)
-	}
-	elem.data = &frameTime
+	// Order of frame(Naming Convention):
+	// past-----------> future
+	// lastFrame--->previousFrame--->currentFrame
+	var lastFrameTime uint64
+	var previousFrameTime uint64
 
 outerGameLoop:
 	for running {
 
-		start = time.Now()
+		previousFrameTime = lastFrameTime
+		lastFrameTime = sdl.GetPerformanceCounter()
+		state.deltaTime = float32((lastFrameTime-previousFrameTime)*1000)/float32(sdl.GetPerformanceFrequency()) - GAME_UPDATE_DELAY
+
 		if state.doInput() {
 			running = false
 			break outerGameLoop
@@ -40,7 +31,6 @@ outerGameLoop:
 
 		state.prepareScene(state.currentLevel.backgroundImage)
 		state.currentLevel.Update(state)
-		frameTime = time.Since(start).String()
 		state.currentLevel.drawAllObjects(state)
 
 		sdl.Delay(GAME_UPDATE_DELAY)
@@ -205,14 +195,21 @@ func (state *state) createGameLevel() {
 	gameLvl.enemies = &[]enemy{}
 	gameLvl.projectiles = &[]projectile{}
 	gameLvl.dataElements = &[]dataElement{}
+	gameLvl.dataElements = &[]dataElement{}
 	gameLvl.nextID = 1
 
-	gameLvl.initPlayer(WINDOW_WIDTH/2, WINDOW_HEIGHT/2, 7, "media/player.png", state.renderer)
+	gameLvl.initPlayer(WINDOW_WIDTH/2, WINDOW_HEIGHT/2, PLAYER_SPEED, "media/player.png", state.renderer)
 
-	if err = gameLvl.addElement(nil, "frameTime", "fT:", WINDOW_WIDTH-300, 0, 1, WHITE, state.currentLevel.AssignID()); err != nil {
+	//if err = gameLvl.addElement(&state.deltaTime, "frameTime", "fT:", "ms", WINDOW_WIDTH-300, 0, 1, WHITE, state.currentLevel.AssignID()); err != nil {
+	//	fmt.Println(err)
+	//}
+	if err = gameLvl.addElement(&gameLvl.player.ammo, "", "Ammo:", "", 0, 0, 2, WHITE, state.currentLevel.AssignID()); err != nil {
 		fmt.Println(err)
 	}
-	if err = gameLvl.addElement(&gameLvl.player.ammo, "", "Ammo:", 0, 0, 2, WHITE, state.currentLevel.AssignID()); err != nil {
+	if err = gameLvl.addElement(&gameLvl.player.vector[0], "", "vX:", "", 300, 0, 1, WHITE, state.currentLevel.AssignID()); err != nil {
+		fmt.Println(err)
+	}
+	if err = gameLvl.addElement(&gameLvl.player.vector[1], "", "vY:", "", 400, 0, 1, WHITE, state.currentLevel.AssignID()); err != nil {
 		fmt.Println(err)
 	}
 
@@ -236,11 +233,11 @@ func (state *state) createMainMenu() {
 	mainMenu.dataElements = &[]dataElement{}
 	mainMenu.nextID = 1
 
-	mainMenu.addElement(nil, "", "Sniffle", (WINDOW_WIDTH-7*FONT_W*3)/2, 120, 3, WHITE, mainMenu.AssignID())
-	mainMenu.addElement(nil, "", "Shoots", (WINDOW_WIDTH-6*FONT_W*5)/2+2, 202, 5, [3]uint8{123, 123, 123}, mainMenu.AssignID())
-	mainMenu.addElement(nil, "", "Shoots", (WINDOW_WIDTH-6*FONT_W*5)/2, 200, 5, WHITE, mainMenu.AssignID())
-	mainMenu.addElement(nil, "", "Asteroids", (WINDOW_WIDTH-9*FONT_W*4)/2, 320, 4, WHITE, mainMenu.AssignID())
-	mainMenu.addElement(nil, "startbutton", "Press Fire to Start", (WINDOW_WIDTH-17*FONT_W*1)/2, 460, 1, WHITE, mainMenu.AssignID())
+	mainMenu.addElement(nil, "", "Sniffle", "", (WINDOW_WIDTH-7*FONT_W*3)/2, 120, 3, WHITE, mainMenu.AssignID())
+	mainMenu.addElement(nil, "", "Shoots", "", (WINDOW_WIDTH-6*FONT_W*5)/2+2, 202, 5, [3]uint8{123, 123, 123}, mainMenu.AssignID())
+	mainMenu.addElement(nil, "", "Shoots", "", (WINDOW_WIDTH-6*FONT_W*5)/2, 200, 5, WHITE, mainMenu.AssignID())
+	mainMenu.addElement(nil, "", "Asteroids", "", (WINDOW_WIDTH-9*FONT_W*4)/2, 320, 4, WHITE, mainMenu.AssignID())
+	mainMenu.addElement(nil, "startbutton", "Press Fire to Start", "", (WINDOW_WIDTH-17*FONT_W*1)/2, 460, 1, WHITE, mainMenu.AssignID())
 
 	if mainMenu.backgroundImage, err = img.LoadTexture(state.renderer, "media/background.png"); err != nil {
 		panic(err)
@@ -290,6 +287,8 @@ func (state *state) getLevelByName(name string) *level {
 func (level *level) Update(state *state) {
 	level.spawnEnemies()
 	level.player.checkEventList(level)
+	level.player.movePlayer(level)
+	level.player.reduceVector()
 	// needs Testing <- written in a hurry
 
 	level.player.handleFireCooldown()

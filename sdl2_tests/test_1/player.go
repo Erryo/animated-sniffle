@@ -1,26 +1,36 @@
 package main
 
+import "github.com/veandco/go-sdl2/sdl"
+
 func (player *player) checkEventList(lvl *level) {
 	if player.eventList[0] {
 		if player.eventList[1] || player.eventList[3] {
-			player.moveUp(lvl, 1/1.4142)
+			player.moveUp(1 / 1.4142)
 		} else {
-			player.moveUp(lvl, 1)
+			player.moveUp(1)
 		}
 	}
 	if player.eventList[1] {
-		player.moveLeft(lvl, 1)
+		if player.eventList[0] || player.eventList[2] {
+			player.moveLeft(1 / 1.4142)
+		} else {
+			player.moveLeft(1)
+		}
 	}
 	if player.eventList[2] {
 		// To make diagonal movement the same speed as the normal movement
 		if player.eventList[1] || player.eventList[3] {
-			player.moveDown(lvl, 1/1.4142)
+			player.moveDown(1 / 1.4142)
 		} else {
-			player.moveDown(lvl, 1)
+			player.moveDown(1)
 		}
 	}
 	if player.eventList[3] {
-		player.moveRight(lvl, 1)
+		if player.eventList[0] || player.eventList[2] {
+			player.moveRight(1 / 1.4142)
+		} else {
+			player.moveRight(1)
+		}
 	}
 	if player.eventList[4] {
 		player.fire(lvl)
@@ -33,75 +43,95 @@ func (player *player) checkEventList(lvl *level) {
 	}
 }
 
-func (player *player) moveUp(lvl *level, speedModifier float32) {
-	newPlayerCoordinate := player.y - int32(float32(player.speed)*speedModifier)
-	if newPlayerCoordinate-int32(player.hitBoxRadius) > 0 {
-		if willColide, _ := lvl.willCollide(player.x, newPlayerCoordinate, player.hitBoxRadius, -1); !willColide {
-			player.y = newPlayerCoordinate
-			if player.rotation == 0 || player.rotation == 360 || (player.rotation > 350 || player.rotation < 10) {
-				player.rotation = 0
-				return
-			}
-			if player.rotation >= 180 {
-				player.changeRotation(15)
-			} else if player.rotation < 180 {
-				player.changeRotation(-15)
-			}
-		}
+func (player *player) reduceVector() {
+	var playerSpeedDecrease int8
+	if sdl.GetPerformanceCounter()%3 == 0 {
+		playerSpeedDecrease = 1
+	}
+	if player.vector[0] < 0 {
+		player.vector[0] = player.vector[0] + playerSpeedDecrease
+	}
+	if player.vector[0] > 0 {
+		player.vector[0] = player.vector[0] - playerSpeedDecrease
+	}
+
+	if player.vector[1] < 0 {
+		player.vector[1] = player.vector[1] + playerSpeedDecrease
+	}
+	if player.vector[1] > 0 {
+		player.vector[1] = player.vector[1] - playerSpeedDecrease
 	}
 }
 
-func (player *player) moveDown(lvl *level, speedModifier float32) {
-	newPlayerCoordinate := player.y + int32(float32(player.speed)*speedModifier)
-	if newPlayerCoordinate+int32(player.hitBoxRadius) < WINDOW_HEIGHT {
-		if willColide, _ := lvl.willCollide(player.x, newPlayerCoordinate, player.hitBoxRadius, -1); !willColide {
-			player.y = newPlayerCoordinate
-			if player.rotation == 180 || (player.rotation > 170 && player.rotation < 190) {
-				player.rotation = 180
-				return
-			}
-			if player.rotation >= 0 && player.rotation < 180 {
-				player.changeRotation(15)
-			} else if player.rotation <= 360 && player.rotation > 180 {
-				player.changeRotation(-15)
-			}
-		}
+func (player *player) movePlayer(lvl *level) {
+	newX := player.x + int32(player.vector[0])
+	newY := player.y + int32(player.vector[1])
+
+	if newY+int32(player.hitBoxRadius) > WINDOW_HEIGHT || newY-int32(player.hitBoxRadius) < 0 {
+		newY = player.y
+	}
+	if newX+int32(player.hitBoxRadius) > WINDOW_WIDTH || newX-int32(player.hitBoxRadius) < 0 {
+		newX = player.x
+	}
+
+	if willColide, _ := lvl.willCollide(newX, newY, player.hitBoxRadius, -1); willColide {
+		return
+	}
+
+	player.y = newY
+	player.x = newX
+}
+
+func (player *player) moveUp(speedModifier float32) {
+	player.vector[1] = -int8(float32(player.speed) * speedModifier)
+	if player.rotation == 0 || player.rotation == 360 || (player.rotation > 350 || player.rotation < 10) {
+		player.rotation = 0
+		return
+	}
+	if player.rotation >= 180 {
+		player.changeRotation(15)
+	} else if player.rotation < 180 {
+		player.changeRotation(-15)
 	}
 }
 
-func (player *player) moveLeft(lvl *level, speedModifier float32) {
-	newPlayerCoordinate := player.x - int32(float32(player.speed)*speedModifier)
-	if newPlayerCoordinate-int32(player.hitBoxRadius) > 0 {
-		if willColide, _ := lvl.willCollide(newPlayerCoordinate, player.y, player.hitBoxRadius, -1); !willColide {
-			player.x = newPlayerCoordinate
-			if player.rotation == 270 || (player.rotation > 260 && player.rotation < 280) {
-				player.rotation = 270
-				return
-			}
-			if player.rotation >= 90 && player.rotation < 270 {
-				player.changeRotation(15)
-			} else if player.rotation < 90 || player.rotation <= 360 {
-				player.changeRotation(-15)
-			}
-		}
+func (player *player) moveDown(speedModifier float32) {
+	player.vector[1] = int8(float32(player.speed) * speedModifier)
+	if player.rotation == 180 || (player.rotation > 170 && player.rotation < 190) {
+		player.rotation = 180
+		return
+	}
+	if player.rotation >= 0 && player.rotation < 180 {
+		player.changeRotation(15)
+	} else if player.rotation <= 360 && player.rotation > 180 {
+		player.changeRotation(-15)
 	}
 }
 
-func (player *player) moveRight(lvl *level, speedModifier float32) {
-	newPlayerCoordinate := player.x + int32(float32(player.speed)*speedModifier)
-	if newPlayerCoordinate+int32(player.hitBoxRadius) < WINDOW_WIDTH {
-		if willColide, _ := lvl.willCollide(newPlayerCoordinate, player.y, player.hitBoxRadius, -1); !willColide {
-			player.x = newPlayerCoordinate
-			if player.rotation == 90 || (player.rotation > 80 && player.rotation < 100) {
-				player.rotation = 90
-				return
-			}
-			if player.rotation < 270 && player.rotation > 90 {
-				player.changeRotation(-15)
-			} else if player.rotation >= 270 || player.rotation < 90 {
-				player.changeRotation(15)
-			}
-		}
+func (player *player) moveLeft(speedModifier float32) {
+	player.vector[0] = -int8(float32(player.speed) * speedModifier)
+	if player.rotation == 270 || (player.rotation > 260 && player.rotation < 280) {
+		player.rotation = 270
+		return
+	}
+	if player.rotation >= 90 && player.rotation < 270 {
+		player.changeRotation(15)
+	} else if player.rotation < 90 || player.rotation <= 360 {
+		player.changeRotation(-15)
+	}
+}
+
+func (player *player) moveRight(speedModifier float32) {
+	player.vector[0] = int8(float32(player.speed) * speedModifier)
+
+	if player.rotation == 90 || (player.rotation > 80 && player.rotation < 100) {
+		player.rotation = 90
+		return
+	}
+	if player.rotation < 270 && player.rotation > 90 {
+		player.changeRotation(-15)
+	} else if player.rotation >= 270 || player.rotation < 90 {
+		player.changeRotation(15)
 	}
 }
 

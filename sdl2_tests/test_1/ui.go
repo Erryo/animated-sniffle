@@ -105,14 +105,15 @@ func (state *state) drawElements() {
 			dataStr = strconv.Itoa(int(*data))
 		case nil:
 		default:
-			fmt.Printf("%T", elem.data)
+			fmt.Printf("Drawing Element data type has defaluted; %T", elem.data)
 		}
-		str = elem.prefix + dataStr
+		str = elem.prefix + dataStr + elem.suffix
 		state.print(state.renderer, str, elem.size, elem.x, elem.y, elem.color)
 	}
 }
 
-func (lvl *level) addElement(data interface{}, name, prefix string, x, y int32, size uint8, color [3]uint8, id uint16) error {
+// data must be a pointer
+func (lvl *level) addElement(data interface{}, name, prefix, suffix string, x, y int32, size uint8, color [3]uint8, id uint16) error {
 	if name != "" {
 		for idx, elem := range *lvl.dataElements {
 			if elem.name == name {
@@ -120,7 +121,7 @@ func (lvl *level) addElement(data interface{}, name, prefix string, x, y int32, 
 			}
 		}
 	}
-	element := dataElement{data: data, name: name, prefix: prefix, x: x, y: y, size: size, color: color, id: id}
+	element := dataElement{data: data, name: name, prefix: prefix, suffix: suffix, x: x, y: y, size: size, color: color, id: id}
 	*lvl.dataElements = append(*lvl.dataElements, element)
 	return nil
 }
@@ -136,7 +137,7 @@ func (level *level) getElementByData(data interface{}) *dataElement {
 
 func (lvl *level) getElementByName(name string) (*dataElement, error) {
 	if name == "" {
-		return nil, fmt.Errorf("Cant get elemnt by empty name")
+		return nil, fmt.Errorf("cant get elemnt by empty name")
 	}
 
 	for idx, elem := range *lvl.dataElements {
@@ -145,7 +146,7 @@ func (lvl *level) getElementByName(name string) (*dataElement, error) {
 			return &(*lvl.dataElements)[idx], nil
 		}
 	}
-	return nil, fmt.Errorf("No element found")
+	return nil, fmt.Errorf("no element found")
 }
 
 func (lvl *level) clearElements() {

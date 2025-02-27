@@ -5,7 +5,6 @@ import (
 	"github.com/veandco/go-sdl2/sdl"
 )
 
-// Better called level state
 type state struct {
 	window       *sdl.Window
 	renderer     *sdl.Renderer
@@ -13,7 +12,11 @@ type state struct {
 	currentLevel *level
 	fontMap      *sdl.Texture
 	runeToCoord  *map[rune][2]uint8
+
+	// time difference between last frame and the frame before the last frame in MS
+	deltaTime float32
 }
+
 type level struct {
 	name            string
 	music           *mix.Music
@@ -36,6 +39,7 @@ type projectile struct {
 	id           uint16
 	x, y         int32
 }
+
 type enemy struct {
 	id           uint16
 	x, y         int32
@@ -45,13 +49,19 @@ type enemy struct {
 	hitBoxRadius uint8
 	color        [3]uint8
 }
+
 type player struct {
-	id            uint16
-	texture       *sdl.Texture
-	hitBoxRadius  uint8
-	x, y          int32
-	rotation      int16
-	speed         uint8
+	id           uint16
+	texture      *sdl.Texture
+	hitBoxRadius uint8
+	x, y         int32
+	rotation     int16
+	speed        uint8
+	vector       [2]int8
+	// Will act as a scaler to the vector, it wont be multiplied
+	// rather divided To avoid the introduction of floats
+	// The bigger the momentum the slower the player
+	//	momentum      uint8
 	cooldown      uint16
 	magazine_size uint8
 	ammo          uint8
@@ -66,6 +76,7 @@ type dataElement struct {
 	data   interface{}
 	name   string
 	prefix string
+	suffix string
 	x, y   int32
 	size   uint8
 	color  [3]uint8
@@ -75,11 +86,12 @@ type dataElement struct {
 const (
 	WINDOW_WIDTH  = 900
 	WINDOW_HEIGHT = 600
-	//  time/frequency : 1000ms/60fps
-	GAME_UPDATE_DELAY      = 17
+	//  time/frequency : 1000ms/60fps = 17
+	GAME_UPDATE_DELAY      = 1000 / 50
 	PLAYER_MAG_SIZE        = 10
 	PLAYER_RELOAD_COOLDOWD = 60 * 2
-	FONT_MAP_W             = 8
+	PLAYER_SPEED           = 8
+	FONT_MAP_W             = 5
 	FONT_MAP_H             = 5
 	FONT_H                 = 20
 	FONT_W                 = 20

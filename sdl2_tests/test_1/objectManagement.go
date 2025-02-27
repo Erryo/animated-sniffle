@@ -210,7 +210,7 @@ func (lvl *level) initPlayer(x, y int32, speed uint8, texturePath string, render
 		x: x, y: y, texture: texture, id: lvl.AssignID(), speed: speed,
 		eventList: eventList, hitBoxRadius: uint8(radius),
 		ammo: PLAYER_MAG_SIZE, magazine_size: PLAYER_MAG_SIZE, cooldown: 0,
-		shootEff: shootEff,
+		shootEff: shootEff, vector: [2]int8{0, 0},
 	}
 	lvl.player = &player
 }
