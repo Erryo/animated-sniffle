@@ -20,13 +20,14 @@ type state struct {
 
 type level struct {
 	// unique
-	name            string
-	music           *mix.Music
-	backgroundImage *sdl.Texture
+	name  string
+	music *mix.Music
+	tiles [MaxLevelHeigth][MaxLevelWidth]uint8
 	// all elements that are not tiles
 	// sorted by z(depth) order
 	blitables [NumberOfZLevels]([]bliter)
 	player    *player
+	camera    sdl.Point
 	nextID    uint16
 }
 
@@ -55,7 +56,7 @@ type movable struct {
 }
 
 type sprite struct {
-	texture *sdl.Texture
+	textureIndex uint8
 	// -1 for top aka ui
 	zLevel int
 	// used to diferenciate
@@ -88,10 +89,24 @@ type bliter interface {
 }
 
 const (
-	WindowWidth         = 1200
-	WindowHeigth        = 900
-	NumberOfZLevels     = 4
+	WindowWidth     = 1200
+	WindowHeigth    = 900
+	NumberOfZLevels = 4
+
 	PathToMainMenuMusic = "assets/music/mainMenu.ogg"
 	PathToTextureAtlas  = "assets/png/textureAtlas.png"
 	PathToFontAtlas     = "assets/png/fontAtlas.png"
+
+	MaxLevelHeigth = 100
+	MaxLevelWidth  = 100
+
+	MaxViewHeigth = 20
+	MaxViewWidth  = 10
+
+	TilesStartIndex = 4
+	ArtSize         = 16
+
+	TextureAtlasW = 6
+	TextureAtlasH = 9
+	EmptyTile     = 0
 )

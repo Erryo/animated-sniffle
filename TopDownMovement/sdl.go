@@ -2,25 +2,24 @@ package main
 
 import (
 	"log"
-	"runtime"
 
 	"github.com/veandco/go-sdl2/img"
 	"github.com/veandco/go-sdl2/mix"
 	"github.com/veandco/go-sdl2/sdl"
 )
 
-func initSDL() state {
-	runtime.LockOSThread()
+func initSDL() *state {
 	var err error
 	var state state
+
 	if err = sdl.Init(sdl.INIT_EVERYTHING); err != nil {
 		log.Panicln(err)
 	}
-	defer sdl.Quit()
 
 	if err = img.Init(img.INIT_PNG); err != nil {
 		log.Panicln(err)
 	}
+
 	if err = mix.Init(mix.INIT_OGG); err != nil {
 		log.Panicln(err)
 	}
@@ -42,7 +41,7 @@ func initSDL() state {
 
 	state.window = window
 	state.renderer = renderer
-	return state
+	return &state
 }
 
 func (s *state) quitGame() {
@@ -51,6 +50,7 @@ func (s *state) quitGame() {
 		s.levels[i] = nil
 		s.currentLevel = nil
 	}
+	s.textureAtlas.Destroy()
 	s.fontAtlas.Destroy()
 	s.renderer.Destroy()
 	s.renderer = nil
@@ -59,7 +59,6 @@ func (s *state) quitGame() {
 }
 
 func (l *level) destroy() {
-	l.backgroundImage.Destroy()
 	var zLayer []bliter
 	for i := range l.blitables {
 		zLayer = l.blitables[i]
