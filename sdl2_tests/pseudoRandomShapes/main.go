@@ -5,7 +5,6 @@ import (
 	"log"
 	"math"
 	"math/rand"
-	"sync"
 
 	"github.com/veandco/go-sdl2/sdl"
 )
@@ -32,8 +31,8 @@ func main() {
 		panic(err)
 	}
 
-	var wg sync.WaitGroup
-	var mu sync.Mutex
+	// var wg sync.WaitGroup
+	// var mu sync.Mutex
 
 	//	points := offsetPoints(createShape())
 	//	points, lines := createTriangle()
@@ -56,12 +55,19 @@ func main() {
 	running := true
 	for running {
 		for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
-			switch event.(type) {
+			switch e := event.(type) {
 			case *sdl.QuitEvent:
 				println("Quit")
 				sdl.Quit()
 				return
 				running = false
+			case *sdl.KeyboardEvent:
+				if e.Type == sdl.KEYDOWN {
+					switch e.Keysym.Scancode {
+					case sdl.SCANCODE_SPACE:
+						sdl.Delay(1 * 1000)
+					}
+				}
 			}
 		}
 
@@ -72,34 +78,33 @@ func main() {
 		//	if err := renderer.RenderGeometry(nil, verts, nil); err != nil {
 		//		log.Panic(err)
 		//	}
-		for range 10 {
-			wg.Add(1)
-			go func() {
-				defer wg.Done()
-				createAndDrawTriangle(renderer, window, &mu)
-			}()
-		}
+		//	for range 10 {
+		//		wg.Add(1)
+		//		go func() {
+		//			defer wg.Done()
+		//			createAndDrawTriangle(renderer, window, &mu)
+		//		}()
+		//	}
 
-		wg.Wait()
+		//	wg.Wait()
+		createAndDrawTriangle(renderer, window)
 		renderer.Present()
 
 	}
 	fmt.Println("Quit")
 }
 
-func createAndDrawTriangle(renderer *sdl.Renderer, window *sdl.Window, mu *sync.Mutex) {
+func createAndDrawTriangle(renderer *sdl.Renderer, window *sdl.Window) {
 	var points []sdl.Point
 	var verts []sdl.Vertex
 	points = randomTriangle([]sdl.Point{})
 	points = offsetPoints(points, window)
 	verts = pointsToVertex(points)
 
-	mu.Lock()
 	//	drawTriangle(pointsToLines(points), renderer)
 	if err := renderer.RenderGeometry(nil, verts, nil); err != nil {
 		log.Panic(err)
 	}
-	mu.Unlock()
 }
 
 func randomTriangle(points []sdl.Point) []sdl.Point {

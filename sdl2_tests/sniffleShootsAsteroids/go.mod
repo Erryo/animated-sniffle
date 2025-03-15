@@ -1,4 +1,4 @@
-module sdl2Test1
+module github.com/Erryo/SniffleShootsAsteroids
 
 go 1.23.3
 
