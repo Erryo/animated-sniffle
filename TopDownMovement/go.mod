@@ -1,4 +1,4 @@
-module githum.com/Erryo/TopDownSniffle
+module github.com/Erryo/TopDownSniffle
 
 go 1.24.0
 

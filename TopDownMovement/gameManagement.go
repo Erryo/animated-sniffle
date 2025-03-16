@@ -35,23 +35,12 @@ func (s *state) handleInput() bool {
 			return true
 		case *sdl.KeyboardEvent:
 			if e.Type == sdl.KEYDOWN {
-				return s.handleKeyDown(e)
+				return s.currentLevel.doKeyDown(e)
 			} else if e.Type == sdl.KEYUP {
-				return s.handleKeyUp(e)
-			}
-		case *sdl.MouseButtonEvent:
-			if e.Type == sdl.BUTTON_LEFT {
+				return s.currentLevel.doKeyDown(e)
 			}
 
 		}
 	}
-	return false
-}
-
-func (s *state) handleKeyDown(e *sdl.KeyboardEvent) bool {
-	return false
-}
-
-func (s *state) handleKeyUp(e *sdl.KeyboardEvent) bool {
 	return false
 }

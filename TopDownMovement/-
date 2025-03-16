@@ -14,7 +14,7 @@ func main() {
 	state := initSDL()
 	args := os.Args[1:]
 	if len(args) > 0 {
-		if state.handleArgs(args) {
+		if handleArgs(args) {
 			closeSDL()
 			return
 		}
@@ -47,10 +47,9 @@ func main() {
 	state.gameLoop()
 }
 
-func (s *state) handleArgs(args []string) bool {
-	switch args[0] {
+func handleArgs(args []string) bool {
+	switch args[1] {
 	case "edit":
-		s.window.Hide()
 		leveleditor.StartLevelEditor()
 		return true
 	}

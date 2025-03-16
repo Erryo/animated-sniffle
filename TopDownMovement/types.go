@@ -14,6 +14,7 @@ type state struct {
 	textureAtlas *sdl.Texture
 	runeToCoord  *map[rune][2]uint8
 
+	windowW, windowH int32
 	// time difference between last frame and the frame before the last frame in MS
 	deltaTime float32
 }
@@ -29,6 +30,9 @@ type level struct {
 	player    *player
 	camera    sdl.Point
 	nextID    uint16
+	doKeyDown func(*sdl.KeyboardEvent) bool
+	doKeyUp   func(*sdl.KeyboardEvent) bool
+	pathToMap string
 }
 
 type projectile struct {
@@ -40,6 +44,8 @@ type player struct {
 	sprite
 	movable
 	killable
+	// Move:Up,Left,Down,Right;...
+	activeActions [9]bool
 }
 type enemy struct {
 	movable
@@ -96,12 +102,13 @@ const (
 	PathToMainMenuMusic = "assets/music/mainMenu.ogg"
 	PathToTextureAtlas  = "assets/png/textureAtlas.png"
 	PathToFontAtlas     = "assets/png/fontAtlas.png"
+	PathToFirstMap      = "assets/json/first.json"
 
 	MaxLevelHeigth = 100
 	MaxLevelWidth  = 100
 
-	MaxViewHeigth = 20
-	MaxViewWidth  = 10
+	MaxViewHeigth = 21
+	MaxViewWidth  = 21
 
 	TilesStartIndex = 4
 	ArtSize         = 16
@@ -109,4 +116,12 @@ const (
 	TextureAtlasW = 6
 	TextureAtlasH = 9
 	EmptyTile     = 0
+)
+
+// Action IDs
+const (
+	P_Move_U = iota
+	P_Move_L
+	P_Move_D
+	P_Move_R
 )
