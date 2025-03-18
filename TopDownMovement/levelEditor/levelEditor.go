@@ -3,15 +3,18 @@ package leveleditor
 import (
 	"fmt"
 	"log"
+	"strconv"
 
 	"github.com/veandco/go-sdl2/img"
 	"github.com/veandco/go-sdl2/sdl"
+	"github.com/veandco/go-sdl2/ttf"
 )
 
 type state struct {
 	window       *sdl.Window
 	renderer     *sdl.Renderer
 	textureAtlas *sdl.Texture
+	font         *ttf.Font
 	tiles        [MaxLevelHeigth][MaxLevelWidth]uint8
 	aosTiles     []tile
 	camera       sdl.Point
@@ -26,12 +29,16 @@ const (
 	MaxLevelHeigth            = 100
 	MaxLevelWidth             = 100
 	ArtSize                   = 16
+	FontSize                  = 32
 	TextureAtlasW             = 6
 	TextureAtlasH             = 9
 	CameraStep                = 14
 )
 
 func StartLevelEditor() {
+	if err := ttf.Init(); err != nil {
+		log.Panicln(err)
+	}
 	window, err := sdl.CreateWindow("level editor", sdl.WINDOWPOS_CENTERED, sdl.WINDOWPOS_CENTERED,
 		WindowWidth, WindowHeigth, sdl.WINDOW_SHOWN)
 	if err != nil {
@@ -46,8 +53,14 @@ func StartLevelEditor() {
 	if err != nil {
 		log.Panicln("error loading textuer Atlas:", err)
 	}
-
 	state := state{renderer: renderer, window: window, textureAtlas: atlas}
+
+	state.font, err = ttf.OpenFont("assets/font/ka1.ttf", FontSize)
+	if err != nil {
+		log.Panicln(err)
+	}
+
+	state.aosTiles = append(state.aosTiles, tile{x: 0, y: 0, typ: 5})
 	state.gameLoop()
 }
 
@@ -79,6 +92,30 @@ func (s *state) drawGrid() {
 	}
 }
 
+func (s *state) drawUI() {
+	camXStr := strconv.Itoa(int(s.camera.X))
+	camYStr := strconv.Itoa(int(s.camera.Y))
+	coordText := "X:" + camXStr + "|| Y:" + camYStr
+	//!NOTE Optimisation possible keep track of texture and check if text changd
+	// if not simply use old texture
+	coordTexture := s.createTextTexture(coordText)
+	s.renderer.Copy(coordTexture, nil, &sdl.Rect{X: 0, Y: 0, W: int32(len(coordText)) * FontSize / 2, H: FontSize})
+	coordTexture.Destroy()
+}
+
+func (s *state) createTextTexture(str string) *sdl.Texture {
+	surf, err := s.font.RenderUTF8Solid(str, sdl.Color{255, 0, 0, 0})
+	if err != nil {
+		log.Panicln(err)
+	}
+	defer surf.Free()
+	texture, err := s.renderer.CreateTextureFromSurface(surf)
+	if err != nil {
+		log.Panicln(err)
+	}
+	return texture
+}
+
 func (s *state) gameLoop() {
 	running := true
 	for running {
@@ -102,6 +139,8 @@ func (s *state) gameLoop() {
 					}
 				} else if e.Type == sdl.KEYUP {
 				}
+			case *sdl.MouseButtonEvent:
+				s.doLMBPress(e)
 
 			}
 		}
@@ -109,15 +148,36 @@ func (s *state) gameLoop() {
 		s.renderer.Clear()
 		s.drawGrid()
 		s.drawTiles()
+		s.drawUI()
 
 		s.renderer.Present()
 	}
 }
 
-func (s *state) drawTiles() {
-	s.renderer.SetDrawColor(255, 0, 0, 255)
-	_, wH := s.window.GetSize()
+func (s *state) doLMBPress(e *sdl.MouseButtonEvent) {
+	var x, y int32
+	x, y = e.X, e.Y
+	switch e.Button {
+	case 1:
+		fmt.Println("mouse L")
+		s.getCellGlobalPos(x, y)
+	case 2:
+		fmt.Println("mouse M")
 
+	}
+}
+
+func (s *state) getCellGlobalPos(x, y int32) {
+	fmt.Println(x, y)
+	// !NOTE Need to change coords to fit top left corner of tile
+	tile := tile{x: x - s.camera.X, y: y - s.camera.Y, typ: 1}
+	fmt.Println(tile.x, tile.y)
+	s.aosTiles = append(s.aosTiles, tile)
+	fmt.Println(s.aosTiles)
+}
+
+func (s *state) drawTiles() {
+	_, wH := s.window.GetSize()
 	s.renderer.FillRect(&sdl.Rect{X: ArtSize*12 + s.camera.X, Y: wH + s.camera.Y, W: 16, H: 16})
 	s.renderer.SetDrawColor(0, 0, 0, 255)
 	src := sdl.Rect{W: ArtSize, H: ArtSize}
@@ -127,8 +187,8 @@ func (s *state) drawTiles() {
 		src.X = int32(srcX) * ArtSize
 		src.Y = int32(srcY) * ArtSize
 
-		dst.X = int32(tile.x)*ArtSize + s.camera.X
-		dst.Y = int32(tile.y)*ArtSize + s.camera.Y
+		dst.X = tile.x + s.camera.X
+		dst.Y = tile.y + s.camera.Y
 
 		s.renderer.Copy(s.textureAtlas, &src, &dst)
 	}
